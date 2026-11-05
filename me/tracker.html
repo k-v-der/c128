@@ -99,6 +99,13 @@ label.f { display: grid; gap: 4px; font-size: 0.8rem; color: var(--muted); font-
 .kv dd { margin: 0; font-family: var(--font-num); direction: ltr; unicode-bidi: isolate; text-align: left; }
 .kv .tot { font-weight: 600; color: var(--fg); border-top: 1px solid var(--line); padding-top: 5px; }
 .empty { color: var(--muted); font-size: 0.88rem; }
+.share { display: flex; height: 12px; border-radius: 99px; overflow: hidden; background: var(--line); gap: 2px; }
+.share i { display: block; height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.78rem; color: var(--muted); }
+.legend span::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 3px; background: var(--c); margin-inline-end: 5px; vertical-align: middle; }
+.ghead { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; padding-top: 6px; border-top: 1px solid var(--line); }
+.ghead .a { font-family: var(--font-num); direction: ltr; unicode-bidi: isolate; font-weight: 600; }
+.g-money { --c: var(--accent); } .g-stock { --c: #c27a1a; } .g-owed { --c: #6b5bd2; } .g-assets { --c: #3a8fb7; }
 .ask { border: 1px dashed var(--accent); background: var(--surface); }
 .preview .li { gap: 8px; }
 details > summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 0.85rem; list-style: none; }
@@ -130,6 +137,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
   <!-- TODAY -->
   <section id="v-today" class="stack" aria-label="اليوم">
     <div class="card" id="weekCard"></div>
+    <a class="card" id="wealthMini" href="#money" style="text-decoration:none;color:inherit"></a>
 
     <div class="card" id="smartCard">
       <h2>ماذا حدث؟</h2>
@@ -221,7 +229,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
   };
   const LOCS = { home: "البيت", warehouse: "مخزن شركة التوصيل" };
   const DEF = { weekly: 7500, usdRate: 0, returnFee: 50, kgFree: 5, kgFee: 50, open: { cash: 0, ccp: 0, delivery: 0, bybit: 0 } };
-  const S = { entries: [], products: [], campaigns: [], settings: JSON.parse(JSON.stringify(DEF)) };
+  const S = { entries: [], products: [], campaigns: [], assets: [], settings: JSON.parse(JSON.stringify(DEF)) };
 
   // ---------------- storage ----------------
   let db = null, sample = null;
@@ -250,11 +258,11 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
     window.claude.use("sample").then((s) => { sample = s; renderSmartAvail(); }).catch(() => { sample = null; renderSmartAvail(); });
     try { db = await window.claude.use("db"); } catch (e) { db = null; }
     if (!db) { lsLoad(); render(); setStatus("محفوظ على هذا الجهاز فقط."); return; }
-    let got = 0; const need = 4;
+    let got = 0; const need = 5;
     const timer = setTimeout(() => { if (got < need) setStatus("لا يمكن الوصول إلى بياناتك بعد. تحقق من الاتصال."); }, 10000);
     const mark = (snap) => { if (!snap.metadata.fromCache) { got++; if (got >= need) { clearTimeout(timer); setStatus("محفوظ في حسابك. لا يراه أحد غيرك."); } } };
     const onErr = () => { clearTimeout(timer); setStatus("انقطع الاتصال بالبيانات. أعد فتح الصفحة."); };
-    ["entries", "products", "campaigns"].forEach((col) => {
+    ["entries", "products", "campaigns", "assets"].forEach((col) => {
       db.collection(col).onSnapshot((snap) => { S[col] = snap.docs.map((d) => Object.assign({ id: d.id }, d.data())); mark(snap); render(); }, onErr);
     });
     db.collection("settings").doc("main").onSnapshot((snap) => {
@@ -379,6 +387,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
         return { t, m: e.acct && e.acct !== "none" ? aname(e.acct) : "بدون حركة مال", a: fmt(num(e.amount)) };
       }
       case "campaign_new": return { t: "حملة جديدة · " + (e.name || ""), m: pname(e.product) + (num(e.budgetUsd) ? " · ميزانية " + usd(num(e.budgetUsd)) : ""), a: "" };
+      case "asset_new": return { t: "شيء له قيمة · " + (e.name || ""), m: e.where || "", a: fmt(num(e.value)) };
       case "product_new": return { t: "منتج جديد · " + (e.name || ""), m: "سعر البيع " + fmt(num(e.price)) + " · التكلفة " + fmt(num(e.cost)) + (num(e.weight) ? " · " + num(e.weight) + " كغ" : ""), a: "" };
     }
     return { t: "عملية", m: "", a: "" };
@@ -413,6 +422,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
     results: { title: "نتائج الطلبيات", needs: "campaign", hint: "اكتب ما تعرفه اليوم. التخفيض: كل ما نقصته للزبون في السعر أو التوصيل. إن كتبت المبلغ الصافي من كشف شركة التوصيل، يُستعمل بدل الحساب.", fields: [["campaign", "الحملة", "select", campOpts], ["loc", "السلعة خرجت من", "select", () => locOpts("warehouse")], ["orders", "طلبيات جديدة", "number"], ["delivered", "طرود مُسلَّمة", "number"], ["pieces", "عدد القطع المُسلَّمة (إن أخذ زبون أكثر من واحدة)", "number"], ["discount", "مجموع التخفيضات (دج)", "number"], ["returned", "مرتجعة", "number"], ["actual", "المبلغ الصافي من كشف شركة التوصيل (اختياري)", "number"], ["date", "التاريخ", "date"]] },
     debt: { title: "دين", fields: [["person", "الشخص", "text"], ["dir", "النوع", "select", () => [["they", "هو مدين لي"], ["me", "أنا مدين له"]]], ["kind", "ماذا حدث", "select", () => [["new", "دين جديد"], ["pay", "تسديد"]]], ["amount", "المبلغ (دج)", "number"], ["acct", "المال خرج/دخل من", "select", () => dzdAcctOpts().concat([["none", "بدون حركة مال"]])], ["date", "التاريخ", "date"]] },
     campaign_new: { title: "حملة جديدة", needs: "product", fields: [["product", "المنتج", "select", prodOpts], ["name", "اسم الحملة", "text"], ["budgetUsd", "ميزانية التجربة ($)", "number"], ["date", "تاريخ البداية", "date"]] },
+    asset_new: { title: "شيء له قيمة", hint: "أي شيء تملكه وله قيمة ولم يُسجَّل في مكان آخر: ذهب، هاتف، دراجة، سلعة غير المنتجات...", fields: [["name", "ما هو", "text"], ["value", "قيمته التقريبية (دج)", "number"], ["where", "أين هو", "text"], ["date", "منذ متى", "date"]] },
     product_new: { title: "منتج", hint: "سعر البيع العادي للقطعة بدون التوصيل. التخفيضات تكتبها عند كل تسليم.", fields: [["name", "اسم المنتج", "text"], ["price", "سعر البيع للقطعة (دج)", "number"], ["cost", "تكلفة القطعة (دج)", "number"], ["weight", "وزن القطعة (كغ)", "number"], ["whFee", "رسوم المخزن لكل طرد مُسلَّم (دج)", "number"]] }
   };
 
@@ -487,6 +497,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
       case "debt": if (!pos("amount") || !String(e.person || "").trim()) return null; if (e.dir !== "me") e.dir = "they"; if (e.kind !== "pay") e.kind = "new"; if (!ACCTS[e.acct]) e.acct = "none"; break;
       case "campaign_new": if (!prodById(e.product)) return null; if (!String(e.name || "").trim()) e.name = pname(e.product) + " " + e.date; break;
       case "product_new": if (!String(e.name || "").trim()) return null; break;
+      case "asset_new": if (!String(e.name || "").trim() || !pos("value")) return null; break;
       default: return null;
     }
     return e;
@@ -498,6 +509,8 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
       if (e.t === "product_new") {
         const p = { id: e.id || uid(), name: String(e.name).trim(), price: num(e.price), cost: num(e.cost), weight: num(e.weight), whFee: num(e.whFee) };
         put("products", p);
+      } else if (e.t === "asset_new") {
+        put("assets", { id: e.id || uid(), name: String(e.name).trim(), value: num(e.value), where: String(e.where || "").trim(), date: e.date });
       } else if (e.t === "campaign_new") {
         const c = { id: e.id || uid(), product: e.product, name: String(e.name).trim(), budgetUsd: num(e.budgetUsd), start: e.date, status: "active" };
         if (e.id) { const old = campById(e.id); if (old) c.status = old.status; }
@@ -536,6 +549,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
       '- results {campaign?, product, orders, delivered, pieces?, discount?, returned, loc, actual?}  orders طلبيات جديدة، delivered طرود مُسلَّمة، pieces عدد القطع إن أخذ زبون أكثر من قطعة، discount مجموع التخفيضات بالدينار، returned مرتجعة، loc من أين خرجت السلعة (الافتراضي warehouse)، actual المبلغ الصافي إن ذكره من كشف شركة التوصيل',
       '- debt {person, dir, kind, amount, acct}  dir="they" هو مدين لي، dir="me" أنا مدين له. kind="new" دين جديد، kind="pay" تسديد. acct="none" إن لم يتحرك مال.',
       '- campaign_new {product, name, budgetUsd?}',
+      '- asset_new {name, value, where}  شيء له قيمة يملكه (ذهب، هاتف...)',
       '- product_new {name, price, cost, weight?, whFee?}  price سعر البيع للقطعة، weight الوزن بالكغ، whFee رسوم المخزن لكل طرد',
       "قواعد: كل عملية فيها date بصيغة YYYY-MM-DD (اليوم إن لم يُذكر). إن لم يذكر الحساب في مصروف صغير فاستعمل cash. product و campaign يجب أن يكونا id من القوائم. إن كانت هناك حملة نشطة واحدة لنفس المنتج فضع campaign. إن ذكر منتجاً غير موجود فأضف product_new مع \"ref\":\"p1\" واستعمل \"p1\" مكان id. وبنفس الطريقة campaign_new مع \"ref\":\"c1\". لا تخترع أرقاماً غير موجودة في الرسالة.",
       "إن كان شيء مهم ناقصاً (المبلغ مثلاً) فلا تخمّن: ضع سؤالاً قصيراً بالعربية في question.",
@@ -649,7 +663,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
   }
 
   function renderToday() {
-    renderWeek(); renderCheckin();
+    renderWeek(); renderWealthMini(); renderCheckin();
     $("todayDate").textContent = today();
     const l = $("todayList"); l.replaceChildren();
     const es = S.entries.filter((e) => e.date === today()).sort((a, b) => (b.ts || "").localeCompare(a.ts || ""));
@@ -733,19 +747,81 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
     });
   }
 
+  function withEntries(list, fn) { const old = S.entries; S.entries = list; try { return fn(); } finally { S.entries = old; } }
+  function wealth() {
+    const { b, owedToMe, iOwe } = balances(); const r = rate();
+    const money = Object.keys(ACCTS).map((k) => ({ k, n: ACCTS[k].n, cur: ACCTS[k].cur, raw: b[k], dzd: ACCTS[k].cur === "USD" ? b[k] * r : b[k] }));
+    const stock = S.products.map((p) => { const s = productStats(p); return { p, s, dzd: s.stockValue }; }).filter((x) => x.s.stock > 0);
+    const owed = Object.keys(owedToMe).filter((x) => owedToMe[x] > 0.5).map((x) => ({ n: x, dzd: owedToMe[x] }));
+    const owe = Object.keys(iOwe).filter((x) => iOwe[x] > 0.5).map((x) => ({ n: x, dzd: iOwe[x] }));
+    const assets = S.assets.map((a) => ({ a, dzd: num(a.value) }));
+    const sum = (arr) => arr.reduce((t, x) => t + x.dzd, 0);
+    const g = { money: sum(money), stock: sum(stock), owed: sum(owed), assets: sum(assets), owe: sum(owe) };
+    return { money, stock, owed, owe, assets, g, total: g.money + g.stock + g.owed + g.assets - g.owe, rateOk: r > 0 };
+  }
+  function wealthAt(date) { return withEntries(S.entries.filter((e) => (e.date || "") <= date), () => wealth().total); }
+
+  function renderWealthMini() {
+    const box = $("wealthMini"); box.replaceChildren();
+    const w = wealth(); const ws = weekStart(today());
+    const prev = new Date(ws + "T12:00:00"); prev.setDate(prev.getDate() - 1);
+    const before = wealthAt(prev.toLocaleDateString("en-CA")); const diff = w.total - before;
+    const head = el("div", "row between"); head.append(el("h2", "", "ثروتك"), el("span", "sub", "التفاصيل ←"));
+    const big = el("div", "big", fmt(w.total));
+    const ch = el("p", "", (diff >= 0 ? "زادت " : "نقصت ") + fmt(Math.abs(diff)) + " منذ السبت");
+    ch.style.color = diff >= 0 ? "var(--good)" : "var(--bad)";
+    box.append(head, big, ch, shareBar(w));
+  }
+  function shareBar(w) {
+    const wrap = el("div", "stack"); wrap.style.gap = "6px";
+    const parts = [["money", "مال", w.g.money], ["stock", "سلعة", w.g.stock], ["owed", "ديون لك", w.g.owed], ["assets", "أشياء أخرى", w.g.assets]].filter((x) => x[2] > 0);
+    const tot = parts.reduce((t, x) => t + x[2], 0);
+    if (!tot) return wrap;
+    const bar = el("div", "share");
+    parts.forEach(([k, , v]) => { const i = el("i", "g-" + k); i.style.width = (v / tot) * 100 + "%"; i.style.background = "var(--c)"; bar.append(i); });
+    const lg = el("div", "legend");
+    parts.forEach(([k, n, v]) => lg.append(el("span", "g-" + k, n + " " + Math.round((v / tot) * 100) + "%")));
+    wrap.append(bar, lg); return wrap;
+  }
+  function renderWealth() {
+    const box = $("netCard"); box.replaceChildren();
+    const w = wealth();
+    box.append(el("h2", "", "ثروتك: كل ما تملكه وأين هو"), el("div", "big", fmt(w.total)), shareBar(w));
+    if (!w.rateOk) box.append(el("p", "pill warn", "حدّد سعر الدولار في الإعدادات ليُحسب Bybit بالدينار."));
+    const group = (cls, title, total, rows, sign) => {
+      const h = el("div", "ghead " + cls); const t = el("h3", "legend"); t.style.color = "var(--fg)"; t.append(el("span", cls, title)); h.append(t, el("span", "a", (sign || "") + fmt(total))); box.append(h);
+      const l = el("div", "list"); rows.forEach((r) => l.append(r)); if (!rows.length) l.append(el("p", "empty", "لا شيء.")); box.append(l);
+    };
+    const row = (t, m, a, extra) => { const r = el("div", "li"); const d = el("div", "d"); d.append(el("span", "t", t)); if (m) d.append(el("span", "m", m)); r.append(d); const right = el("div", "row"); right.append(el("span", "a", a)); if (extra) right.append(extra); r.append(right); return r; };
+    group("g-money", "مال", w.g.money, w.money.filter((x) => Math.abs(x.raw) > 0.005).map((x) => row(x.n, x.cur === "USD" ? usd(x.raw) + (w.rateOk ? " × " + Math.round(rate()) + " دج" : "") : (x.k === "delivery" ? "طلبيات مُسلَّمة لم تُحوَّل لك بعد" : ""), fmt(x.dzd))));
+    group("g-stock", "سلعة (بسعر الشراء)", w.g.stock, w.stock.map((x) => {
+      const r = el("div", "li"); r.style.display = "grid"; r.style.gap = "4px";
+      const top = el("div", "row between"); top.append(el("span", "t", x.p.name), el("span", "a", fmt(x.dzd)));
+      const where = [x.s.loc.home > 0 ? "البيت " + Math.round(x.s.loc.home) : "", x.s.loc.warehouse > 0 ? "المخزن " + Math.round(x.s.loc.warehouse) : ""].filter(Boolean).join(" · ");
+      r.append(top, el("span", "m", Math.round(x.s.stock) + " قطعة × " + fmt(x.s.avgCost) + (where ? " · " + where : "")));
+      const buys = S.entries.filter((e) => e.t === "stock" && e.product === x.p.id).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+      if (buys.length) {
+        const det = el("details"); det.append(el("summary", "", "متى اشتريتها"));
+        buys.forEach((e) => det.append(el("p", "m", e.date + " · " + num(e.qty) + " قطعة × " + fmt(num(e.unitCost)) + " · " + (LOCS[e.loc] || LOCS.home))));
+        r.append(det);
+      }
+      return r;
+    }));
+    group("g-owed", "ديون لك عند الناس", w.g.owed, w.owed.map((x) => row(x.n, "", fmt(x.dzd))));
+    group("g-assets", "أشياء أخرى لها قيمة", w.g.assets, w.assets.map((x) => {
+      const ed = el("button", "x", "✎"); ed.type = "button"; ed.setAttribute("aria-label", "تعديل " + x.a.name); ed.onclick = () => openSheet("asset_new", x.a);
+      const dl = el("button", "x", "×"); dl.type = "button"; dl.setAttribute("aria-label", "احذف " + x.a.name);
+      dl.onclick = () => { if (dl.dataset.c) del("assets", x.a.id); else { dl.dataset.c = "1"; dl.textContent = "حذف؟"; dl.style.fontSize = "0.8rem"; } };
+      const f = document.createDocumentFragment(); f.append(ed, dl);
+      return row(x.a.name, [x.a.where, x.a.date ? "منذ " + x.a.date : ""].filter(Boolean).join(" · "), fmt(x.dzd), f);
+    }));
+    const add = el("button", "ghost", "+ شيء له قيمة"); add.type = "button"; add.onclick = () => openSheet("asset_new"); box.append(add);
+    if (w.owe.length) group("", "ناقص: ديون عليك", w.g.owe, w.owe.map((x) => row(x.n, "", fmt(x.dzd))), "−");
+  }
+
   function renderMoney() {
     const { b, owedToMe, iOwe } = balances(); const r = rate();
-    const dzdTotal = b.cash + b.ccp + b.delivery + b.bybit * r;
-    const owedSum = Object.values(owedToMe).reduce((a, v) => a + Math.max(0, v), 0);
-    const oweSum = Object.values(iOwe).reduce((a, v) => a + Math.max(0, v), 0);
-    let stockVal = 0; S.products.forEach((p) => (stockVal += productStats(p).stockValue));
-    const net = $("netCard"); net.replaceChildren();
-    net.append(el("h2", "", "كل ما تملكه"), el("div", "big", fmt(dzdTotal + owedSum - oweSum + stockVal)));
-    const dl = el("dl", "kv");
-    [["المال في كل المصادر", fmt(dzdTotal)], ["ديون لك عند الناس", "+" + fmt(owedSum)], ["قيمة الستوك", "+" + fmt(stockVal)], ["ديون عليك", "−" + fmt(oweSum)]]
-      .forEach(([k, v]) => dl.append(el("dt", "", k), el("dd", "", v)));
-    net.append(dl);
-    if (!r) net.append(el("p", "pill warn", "حدّد سعر الدولار في الإعدادات ليُحسب Bybit بالدينار."));
+    renderWealth();
 
     const al = $("acctList"); al.replaceChildren();
     Object.keys(ACCTS).forEach((k) => {
