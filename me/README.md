@@ -1,30 +1,30 @@
 # me/
 
-A small system for getting organized. Open it whenever you feel lost.
+نظام بسيط لتنظيم نفسك. افتحه كلما شعرت بالضياع.
 
-## Store tracker
+## متتبع المتجر
 
-**[Open the tracker](https://claude.ai/artifact/2eQDNyDDQ2SbvzwWAsTvu4)** (or `tracker.html` in this folder). Each evening, type in ad spend, orders and delivered. It tells you if the store is making or losing money, and how much ad money is left after food, bills and savings.
+**[افتح المتتبع](https://claude.ai/artifact/2eQDNyDDQ2SbvzwWAsTvu4)** (أو `tracker.html` في هذا المجلد). كل مساء اكتب مصروف الإعلانات والطلبيات والمُسلَّمة. يخبرك إن كان المتجر يربح أو يخسر، وكم بقي للإعلانات بعد الأكل والفواتير والادخار.
 
-## Feeling lost? Do this (5 min)
+## تشعر بالضياع؟ افعل هذا (5 دقائق)
 
-1. Open **[now.md](now.md)**. Do the *next action* written there. That's all you have to do.
-2. Got a new idea in your head? Write it in **[ideas.md](ideas.md)** and keep going. Don't act on it yet.
-3. Is `now.md` empty or stale? Use the **Pick one** steps in [ideas.md](ideas.md), then fill in `now.md`.
-4. Has it been a month or more? Reread **[direction.md](direction.md)** and update it.
+1. افتح **[now.md](now.md)** ونفّذ *الخطوة التالية* المكتوبة فيه. هذا كل المطلوب.
+2. جاءتك فكرة جديدة؟ اكتبها في **[ideas.md](ideas.md)** وأكمل عملك. لا تنفّذها الآن.
+3. هل `now.md` فارغ أو قديم؟ استعمل خطوات **"اختر واحدة"** في [ideas.md](ideas.md)، ثم املأ `now.md`.
+4. مرّ شهر أو أكثر؟ أعد قراءة **[direction.md](direction.md)** وحدّثه.
 
-## Files
+## الملفات
 
-| File | What it's for | How often |
-|------|---------------|-----------|
-| [tracker.html](tracker.html) | Daily store numbers and the make-or-lose verdict | Every evening a campaign runs |
-| [now.md](now.md) | The one project you're doing and the next step | Every time |
-| [ideas.md](ideas.md) | Holding area for ideas, plus how to pick one | When an idea shows up |
-| [direction.md](direction.md) | What you're working toward and why | About once a month |
-| [profile.md](profile.md) | Who you are and how you work | Rarely |
+| الملف | لماذا | متى |
+|------|-------|-----|
+| [tracker.html](tracker.html) | أرقام المتجر اليومية وحكم الربح أو الخسارة | كل مساء أثناء الحملة |
+| [now.md](now.md) | المشروع الوحيد الحالي وخطوته التالية | كل مرة |
+| [ideas.md](ideas.md) | مكان لركن الأفكار، وطريقة لاختيار واحدة | عند ظهور فكرة |
+| [direction.md](direction.md) | إلى أين تتجه ولماذا | مرة في الشهر تقريباً |
+| [profile.md](profile.md) | من أنت وكيف تعمل | نادراً |
 
-## Rules
+## القواعد
 
-- **One project at a time.** Everything else waits in `ideas.md`.
-- **Next actions are small**: something you can start in under 2 minutes.
-- **No guilt.** If you skipped a week, start again at step 1.
+- **مشروع واحد في كل مرة.** كل شيء آخر ينتظر في `ideas.md`.
+- **الخطوة التالية صغيرة**: شيء تبدأه في أقل من دقيقتين.
+- **لا لوم.** إذا فاتك أسبوع، ابدأ من الخطوة 1.

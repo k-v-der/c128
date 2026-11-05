@@ -1,30 +1,30 @@
-# Direction
+# الاتجاه
 
-## My direction, in one line
-> **I'm working toward saving enough money to get married, mainly by growing my COD store, while I keep growing in my job.**
+## اتجاهي في سطر واحد
+> **أعمل من أجل ادخار ما يكفي للزواج، أساساً من خلال تنمية متجري، مع الاستمرار في التطور في عملي.**
 
-## The numbers
+## أولاً: أوقف النزيف
+الإعلانات الآن تأكل مصروف الأكل. حتى يُظهر [المتتبع](https://claude.ai/artifact/2eQDNyDDQ2SbvzwWAsTvu4) حملات رابحة، الهدف هو **التعادل وحماية الضروريات**، وليس التوسع. ادخار الزواج يبدأ من راتب العمل، *ويُدَّخر قبل الإعلانات*.
+
+## الأرقام
 | | |
 |---|---|
-| **Target amount** | _ <!-- how much you need for the wedding --> |
-| **By when** | _ |
-| **Saved so far** | _ |
-| **Needed per month** | _ <!-- (target − saved) ÷ months left --> |
+| **المبلغ المطلوب** | _ <!-- كم تحتاج للزواج --> |
+| **قبل تاريخ** | _ |
+| **ما ادخرته حتى الآن** | _ |
+| **المطلوب كل شهر** | _ <!-- (المطلوب − المدخر) ÷ الأشهر المتبقية --> |
 
-## Where the money comes from
-1. **Job.** It's steady. Save a fixed part of every paycheck, *before* spending.
-2. **COD store.** This is the growth part and my **one project** (see [now.md](now.md)).
-3. **Every other idea waits** in [ideas.md](ideas.md) until the store is working or clearly isn't.
+## من أين يأتي المال
+1. **العمل.** ثابت. ادخر جزءاً ثابتاً من كل راتب، *قبل* أن تصرف.
+2. **متجر الدفع عند الاستلام.** هذا جزء النمو، و**مشروعي الوحيد** (انظر [now.md](now.md)).
+3. **كل الأفكار الأخرى تنتظر** في [ideas.md](ideas.md) حتى ينجح المتجر أو يتضح أنه لا ينجح.
 
-## First: stop the bleeding
-Right now ads are eating my food money. Until the campaign log shows campaigns that earn money, the goal is **break-even and protecting essentials**, not growth. Wedding savings start from job income, *saved before ads*.
+## عندما يأتي الشك ("هل يستحق؟")
+لا تقرر بالإحساس. انظر إلى [المتتبع](https://claude.ai/artifact/2eQDNyDDQ2SbvzwWAsTvu4):
+- **الربح يرتفع، ولو ببطء؟** استمر.
+- **ثابت لأكثر من 4 أسابيع؟** غيّر *شيئاً واحداً* (المنتج، الإعلان، السعر، الصفحة) وجرّب من جديد.
+- **خسارة لأكثر من 8 أسابيع رغم عدة تغييرات؟** من حقك أن تختار فكرة أخرى من [ideas.md](ideas.md). هذا قرار مبني على الأرقام، وليس فشلاً.
 
-## When doubt shows up ("is this worth it?")
-Don't decide by feeling. Look at the scoreboard in [now.md](now.md):
-- **Profit going up, even slowly?** Keep going.
-- **Flat for 4+ weeks?** Change *one thing* (product, ad, price, page) and test again.
-- **Losing money for 8+ weeks after several changes?** Then it's fair to pick another idea from [ideas.md](ideas.md). That's a decision based on data, not a failure.
-
-## Check-ins
-*About once a month: is the line at the top still true? Write the date and one sentence.*
-- _date_: 
+## المراجعات
+*مرة في الشهر تقريباً: هل السطر في الأعلى ما زال صحيحاً؟ اكتب التاريخ وجملة واحدة.*
+- _التاريخ_: 

@@ -1,7 +1,7 @@
-<title>Store Money Tracker</title>
+<title>متتبع أرباح المتجر</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: one narrow column, phone first. Verdict cards on top, then the three tools. */
 :root {
@@ -17,7 +17,7 @@
   --bad-bg: #fbe7e5;
   --warn: #8a5a00;
   --warn-bg: #fbf0d9;
-  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
 @media (prefers-color-scheme: dark) {
@@ -65,7 +65,8 @@ button.x { background: transparent; border: none; color: var(--muted); padding: 
 .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .verdict { border-radius: 10px; padding: 16px; display: grid; gap: 4px; border: 1px solid transparent; }
 .verdict .big { font-family: var(--font-num); font-size: 1.6rem; font-weight: 500; }
-.verdict .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+.verdict .lbl { font-size: 0.8rem; font-weight: 600; }
+.verdict .big { direction: ltr; text-align: right; }
 .v-good { background: var(--good-bg); color: var(--good); }
 .v-bad { background: var(--bad-bg); color: var(--bad); }
 .v-warn { background: var(--warn-bg); color: var(--warn); }
@@ -74,49 +75,49 @@ button.x { background: transparent; border: none; color: var(--muted); padding: 
 .pill { display: inline-block; font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
 .kv { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 0.9rem; }
 .kv dt { color: var(--muted); }
-.kv dd { margin: 0; text-align: right; font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.kv dd { margin: 0; text-align: left; direction: ltr; font-family: var(--font-num); font-variant-numeric: tabular-nums; }
 .kv .total { font-weight: 600; color: var(--fg); border-top: 1px solid var(--line); padding-top: 6px; }
 .tbl-wrap { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
-th { text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { text-align: right; font-size: 0.8rem; color: var(--muted); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
 td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
-td.n, th.n { text-align: right; }
-td input { padding: 4px 6px; font-size: 0.9rem; width: 5.5em; text-align: right; }
+td.n, th.n { text-align: left; }
+td input { padding: 4px 6px; font-size: 0.9rem; width: 5.5em; text-align: left; direction: ltr; }
 .banner { background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; font-size: 0.9rem; }
 .banner button { border-color: var(--warn); background: transparent; color: var(--warn); padding: 5px 10px; }
-.rules { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; }
+.rules { margin: 0; padding-right: 1.4em; padding-left: 0; display: grid; gap: 4px; }
 .empty { color: var(--muted); font-size: 0.9rem; }
 @media (prefers-reduced-motion: no-preference) { button { transition: opacity .15s; } button:hover { opacity: .85; } }
 </style>
 
-<main>
+<main dir="rtl" lang="ar">
   <header>
-    <h1>Store Money Tracker</h1>
-    <p class="sub">Is the store making money or eating your food money? Type three numbers a day and this page does the math.</p>
-    <p class="status" id="status">Loading…</p>
+    <h1>متتبع أرباح المتجر</h1>
+    <p class="sub">هل المتجر يربح، أم يأكل مصروف الأكل؟ اكتب ثلاثة أرقام كل يوم، والصفحة تحسب لك الباقي.</p>
+    <p class="status" id="status">جارٍ التحميل…</p>
   </header>
 
   <div class="banner" id="exampleBanner" hidden>
-    <span>These are <strong>example numbers</strong> so you can see how it works. Replace them with yours.</span>
-    <button type="button" id="clearExamples">Clear examples</button>
+    <span>هذه <strong>أرقام تجريبية</strong> لترى كيف تعمل الصفحة. ضع أرقامك مكانها.</span>
+    <button type="button" id="clearExamples">امسح الأمثلة</button>
   </div>
 
   <section aria-labelledby="h-verdict">
-    <h2 id="h-verdict">This month</h2>
+    <h2 id="h-verdict">هذا الشهر</h2>
     <div class="verdicts" id="verdicts"></div>
   </section>
 
   <section aria-labelledby="h-money">
     <div class="sec-head">
-      <h2 id="h-money">1. Monthly money check</h2>
-      <p class="sub">Do this on payday. Food and bills come first, ads get only what's left.</p>
+      <h2 id="h-money">١. حساب الشهر</h2>
+      <p class="sub">افعل هذا يوم استلام الراتب. الأكل والفواتير أولاً، والإعلانات تأخذ ما يتبقى فقط.</p>
     </div>
     <div class="card">
       <div class="grid2">
-        <label class="f">Income this month<input type="number" inputmode="decimal" id="m-income" min="0"></label>
-        <label class="f">Food + bills (protected)<input type="number" inputmode="decimal" id="m-essentials" min="0"></label>
-        <label class="f">Wedding savings<input type="number" inputmode="decimal" id="m-savings" min="0"></label>
-        <label class="f">Currency<input type="text" id="m-currency" placeholder="e.g. DA, $, €" maxlength="6"></label>
+        <label class="f">دخل هذا الشهر<input type="number" inputmode="decimal" id="m-income" min="0"></label>
+        <label class="f">الأكل + الفواتير (محمية)<input type="number" inputmode="decimal" id="m-essentials" min="0"></label>
+        <label class="f">ادخار الزواج<input type="number" inputmode="decimal" id="m-savings" min="0"></label>
+        <label class="f">العملة<input type="text" id="m-currency" placeholder="مثلاً: دج، $، €" maxlength="6"></label>
       </div>
       <dl class="kv" id="moneyResult"></dl>
     </div>
@@ -124,27 +125,27 @@ td input { padding: 4px 6px; font-size: 0.9rem; width: 5.5em; text-align: right;
 
   <section aria-labelledby="h-products">
     <div class="sec-head">
-      <h2 id="h-products">2. Products and break-even</h2>
-      <p class="sub">Fill this in once per product. It shows the most you can pay in ads for each delivered order.</p>
+      <h2 id="h-products">٢. المنتجات ونقطة التعادل</h2>
+      <p class="sub">املأها مرة واحدة لكل منتج. تُظهر أقصى مبلغ إعلانات يمكنك دفعه لكل طلبية مُسلَّمة.</p>
     </div>
     <div id="products" style="display:grid;gap:12px"></div>
-    <div class="row"><button type="button" class="ghost" id="addProduct">+ Add product</button></div>
+    <div class="row"><button type="button" class="ghost" id="addProduct">+ أضف منتجاً</button></div>
   </section>
 
   <section aria-labelledby="h-log">
     <div class="sec-head">
-      <h2 id="h-log">3. Daily log</h2>
-      <p class="sub">Each evening: ad spend from the ads manager, new orders from the store. Fill in delivered when the delivery company confirms.</p>
+      <h2 id="h-log">٣. السجل اليومي</h2>
+      <p class="sub">كل مساء: مصروف الإعلانات من مدير الإعلانات، والطلبيات الجديدة من المتجر. واكتب المُسلَّمة عندما تؤكدها شركة التوصيل.</p>
     </div>
     <div class="card">
       <div class="grid2">
-        <label class="f">Date<input type="date" id="l-date"></label>
-        <label class="f">Product<select id="l-product"></select></label>
-        <label class="f">Ad spend<input type="number" inputmode="decimal" id="l-spend" min="0"></label>
-        <label class="f">New orders<input type="number" inputmode="numeric" id="l-orders" min="0"></label>
-        <label class="f">Delivered (can add later)<input type="number" inputmode="numeric" id="l-delivered" min="0"></label>
+        <label class="f">التاريخ<input type="date" id="l-date"></label>
+        <label class="f">المنتج<select id="l-product"></select></label>
+        <label class="f">مصروف الإعلانات<input type="number" inputmode="decimal" id="l-spend" min="0"></label>
+        <label class="f">طلبيات جديدة<input type="number" inputmode="numeric" id="l-orders" min="0"></label>
+        <label class="f">المُسلَّمة (يمكن إضافتها لاحقاً)<input type="number" inputmode="numeric" id="l-delivered" min="0"></label>
       </div>
-      <div class="row"><button type="button" id="addLog">Add day</button><span class="status" id="logMsg"></span></div>
+      <div class="row"><button type="button" id="addLog">أضف اليوم</button><span class="status" id="logMsg"></span></div>
     </div>
     <div class="card">
       <div class="tbl-wrap"><table id="logTable"></table></div>
@@ -152,13 +153,13 @@ td input { padding: 4px 6px; font-size: 0.9rem; width: 5.5em; text-align: right;
   </section>
 
   <section aria-labelledby="h-rules">
-    <h2 id="h-rules">The rules</h2>
+    <h2 id="h-rules">القواعد</h2>
     <div class="card">
       <ol class="rules">
-        <li>Food and bills are set aside first. Ads never touch them.</li>
-        <li>Ads get a fixed budget for the month. When it's spent, stop.</li>
-        <li>When a product has used its test budget and still loses money, stop it. No "one more day".</li>
-        <li>Count <strong>delivered</strong> orders. Refused orders still cost you.</li>
+        <li>الأكل والفواتير تُخصَم أولاً، والإعلانات لا تلمسها أبداً.</li>
+        <li>للإعلانات ميزانية ثابتة في الشهر. عندما تنتهي، توقّف.</li>
+        <li>إذا استهلك المنتج ميزانية التجربة وما زال يخسر، أوقفه. لا "يوم واحد آخر".</li>
+        <li>احسب الطلبيات <strong>المُسلَّمة</strong>. الطلبيات المرفوضة تكلّفك أيضاً.</li>
       </ol>
     </div>
   </section>
@@ -179,8 +180,8 @@ td input { padding: 4px 6px; font-size: 0.9rem; width: 5.5em; text-align: right;
       example: true,
       money: { income: 60000, essentials: 30000, savings: 15000, currency: "" },
       products: [
-        { id: p1, name: "Example: hair straightener", price: 3500, cost: 1500, delivery: 500, other: 200, testBudget: 8000 },
-        { id: p2, name: "Example: phone holder", price: 1800, cost: 700, delivery: 500, other: 100, testBudget: 5000 }
+        { id: p1, name: "مثال: مكواة شعر", price: 3500, cost: 1500, delivery: 500, other: 200, testBudget: 8000 },
+        { id: p2, name: "مثال: حامل هاتف", price: 1800, cost: 700, delivery: 500, other: 100, testBudget: 5000 }
       ],
       logs: [
         { id: uid(), date: ds(4), product: p1, spend: 2000, orders: 6, delivered: 4 },
@@ -207,34 +208,34 @@ td input { padding: 4px 6px; font-size: 0.9rem; width: 5.5em; text-align: right;
   function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(save, 700); }
   async function save() {
     lsWrite();
-    if (!docRef) { setStatus("Saved on this device only."); return; }
+    if (!docRef) { setStatus("محفوظ على هذا الجهاز فقط."); return; }
     if (saving) { pending = true; return; }
-    saving = true; setStatus("Saving…");
-    try { await docRef.set(JSON.parse(JSON.stringify(state))); setStatus("Saved to your account. Only you can see it."); }
-    catch (e) { setStatus("Couldn't save to your account. Your numbers are kept on this device for now."); }
+    saving = true; setStatus("جارٍ الحفظ…");
+    try { await docRef.set(JSON.parse(JSON.stringify(state))); setStatus("محفوظ في حسابك. لا يراه أحد غيرك."); }
+    catch (e) { setStatus("تعذّر الحفظ في حسابك. أرقامك محفوظة على هذا الجهاز مؤقتاً."); }
     saving = false;
     if (pending) { pending = false; save(); }
   }
   async function initStorage() {
     const local = lsRead();
     if (local) { state = local; render(); }
-    if (!window.claude || !window.claude.use) { setStatus(local ? "Saved on this device only." : "Showing example numbers."); return; }
+    if (!window.claude || !window.claude.use) { setStatus(local ? "محفوظ على هذا الجهاز فقط." : "تُعرض أرقام تجريبية."); return; }
     try {
       const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
       const id = user ? await user.id() : null;
-      if (!db || !id) { setStatus(local ? "Saved on this device only." : "Sign in to save your numbers. Showing examples."); return; }
+      if (!db || !id) { setStatus(local ? "محفوظ على هذا الجهاز فقط." : "سجّل الدخول لحفظ أرقامك. تُعرض أمثلة."); return; }
       docRef = db.doc("data/users/" + id + "/tracker");
-      const timer = setTimeout(() => setStatus("Can't reach your saved numbers yet. Showing what's on this device."), 10000);
+      const timer = setTimeout(() => setStatus("لا يمكن الوصول إلى أرقامك المحفوظة بعد. يُعرض ما على هذا الجهاز."), 10000);
       const snap = await docRef.get();
       clearTimeout(timer);
-      if (snap.exists) { state = Object.assign(emptyState(), snap.data()); render(); setStatus("Loaded from your account. Only you can see it."); }
-      else { setStatus(state.example ? "Showing example numbers. Your changes save to your account." : "Ready."); if (!state.example) save(); }
-    } catch (e) { setStatus("Saved on this device only."); }
+      if (snap.exists) { state = Object.assign(emptyState(), snap.data()); render(); setStatus("تم التحميل من حسابك. لا يراه أحد غيرك."); }
+      else { setStatus(state.example ? "تُعرض أرقام تجريبية. تعديلاتك تُحفظ في حسابك." : "جاهز."); if (!state.example) save(); }
+    } catch (e) { setStatus("محفوظ على هذا الجهاز فقط."); }
   }
 
   // ---------- math ----------
   const cur = () => (state.money.currency || "").trim();
-  const fmt = (n) => { const s = Math.round(n).toLocaleString(); return cur() ? s + " " + cur() : s; };
+  const fmt = (n) => { const s = Math.round(n).toLocaleString("en-US"); return cur() ? s + " " + cur() : s; };
   const unitProfit = (p) => num(p.price) - num(p.cost) - num(p.delivery) - num(p.other);
   function productStats(p, onlyMonth) {
     const m = monthKey();
@@ -247,11 +248,11 @@ td input { padding: 4px 6px; font-size: 0.9rem; width: 5.5em; text-align: right;
     const cpd = delivered > 0 ? spend / delivered : null;
     const rate = orders > 0 ? delivered / orders : null;
     let verdict;
-    if (!logs.length) verdict = { cls: "v-none", text: "No data yet" };
-    else if (unitProfit(p) <= 0) verdict = { cls: "v-bad", text: "Loses money even before ads" };
-    else if (profit >= 0) verdict = { cls: "v-good", text: "Making money" };
-    else if (spend >= num(p.testBudget) && num(p.testBudget) > 0) verdict = { cls: "v-bad", text: "Stop this product" };
-    else verdict = { cls: "v-warn", text: "Losing so far. Watch it" };
+    if (!logs.length) verdict = { cls: "v-none", text: "لا توجد بيانات بعد" };
+    else if (unitProfit(p) <= 0) verdict = { cls: "v-bad", text: "يخسر حتى قبل الإعلانات" };
+    else if (profit >= 0) verdict = { cls: "v-good", text: "يربح" };
+    else if (spend >= num(p.testBudget) && num(p.testBudget) > 0) verdict = { cls: "v-bad", text: "أوقف هذا المنتج" };
+    else verdict = { cls: "v-warn", text: "يخسر حتى الآن. راقبه" };
     return { spend, orders, delivered, profit, cpd, rate, pendingDays, verdict, n: logs.length };
   }
 
@@ -281,13 +282,13 @@ td input { padding: 4px 6px; font-size: 0.9rem; width: 5.5em; text-align: right;
       const c = document.createElement("span"); c.textContent = note;
       d.append(a, b, c); box.append(d);
     };
-    card(monthProfit >= 0 ? "v-good" : "v-bad", "Store profit this month", fmt(monthProfit),
-      monthProfit >= 0 ? "The store is paying for itself." : "The store is costing you money.");
+    card(monthProfit >= 0 ? "v-good" : "v-bad", "ربح المتجر هذا الشهر", fmt(monthProfit),
+      monthProfit >= 0 ? "المتجر يغطي مصاريفه ويربح." : "المتجر يخسّرك المال.");
     const left = adBudget - monthSpend;
-    if (num(m.income) <= 0) card("v-none", "Ad money left", "–", "Fill in the money check to see this.");
-    else if (adBudget <= 0) card("v-bad", "Ad money left", fmt(left), "No room for ads after food, bills and savings.");
-    else card(left >= 0 ? (left < adBudget * 0.2 ? "v-warn" : "v-good") : "v-bad", "Ad money left", fmt(left),
-      left >= 0 ? "Spent " + fmt(monthSpend) + " of " + fmt(adBudget) + "." : "Over budget. Stop ads until next month.");
+    if (num(m.income) <= 0) card("v-none", "المتبقي للإعلانات", "–", "املأ حساب الشهر لترى هذا.");
+    else if (adBudget <= 0) card("v-bad", "المتبقي للإعلانات", fmt(left), "لا يبقى شيء للإعلانات بعد الأكل والفواتير والادخار.");
+    else card(left >= 0 ? (left < adBudget * 0.2 ? "v-warn" : "v-good") : "v-bad", "المتبقي للإعلانات", fmt(left),
+      left >= 0 ? "صرفت " + fmt(monthSpend) + " من " + fmt(adBudget) + "." : "تجاوزت الميزانية. أوقف الإعلانات حتى الشهر القادم.");
   }
 
   function renderMoney() {
@@ -296,34 +297,34 @@ td input { padding: 4px 6px; font-size: 0.9rem; width: 5.5em; text-align: right;
     $("m-savings").value = m.savings || ""; $("m-currency").value = m.currency || "";
     const adBudget = num(m.income) - num(m.essentials) - num(m.savings);
     kv($("moneyResult"), [
-      ["Income", fmt(num(m.income))],
-      ["− Food + bills", fmt(num(m.essentials))],
-      ["− Wedding savings", fmt(num(m.savings))],
-      ["= Max for ads this month", fmt(Math.max(0, adBudget)), true]
+      ["الدخل", fmt(num(m.income))],
+      ["− الأكل + الفواتير", fmt(num(m.essentials))],
+      ["− ادخار الزواج", fmt(num(m.savings))],
+      ["= أقصى مبلغ للإعلانات هذا الشهر", fmt(Math.max(0, adBudget)), true]
     ]);
   }
 
-  const PFIELDS = [["name", "Product name", "text"], ["price", "Selling price", "number"], ["cost", "Product cost", "number"],
-    ["delivery", "Delivery fee", "number"], ["other", "Packaging, confirmation, other", "number"], ["testBudget", "Test budget (ads)", "number"]];
+  const PFIELDS = [["name", "اسم المنتج", "text"], ["price", "سعر البيع", "number"], ["cost", "سعر شراء المنتج", "number"],
+    ["delivery", "سعر التوصيل", "number"], ["other", "التغليف، التأكيد، مصاريف أخرى", "number"], ["testBudget", "ميزانية التجربة (إعلانات)", "number"]];
 
   function renderProducts() {
     const box = $("products"); box.replaceChildren();
     if (!state.products.length) {
-      const p = document.createElement("p"); p.className = "empty"; p.textContent = "No products yet. Add your main product first.";
+      const p = document.createElement("p"); p.className = "empty"; p.textContent = "لا توجد منتجات بعد. ابدأ بمنتجك الرئيسي.";
       box.append(p);
     }
     state.products.forEach((p) => {
       const c = document.createElement("div"); c.className = "card";
       const head = document.createElement("div"); head.className = "row"; head.style.justifyContent = "space-between";
       const st = productStats(p, false);
-      const t = document.createElement("strong"); t.textContent = p.name || "Unnamed product";
+      const t = document.createElement("strong"); t.textContent = p.name || "منتج بلا اسم";
       const right = document.createElement("div"); right.className = "row";
       right.append(pill(st.verdict));
       const del = document.createElement("button"); del.type = "button"; del.className = "x"; del.textContent = "×";
-      del.setAttribute("aria-label", "Remove " + (p.name || "product"));
+      del.setAttribute("aria-label", "احذف " + (p.name || "المنتج"));
       del.dataset.confirm = "0";
       del.onclick = () => {
-        if (del.dataset.confirm === "0") { del.dataset.confirm = "1"; del.textContent = "Remove?"; del.style.fontSize = "0.85rem"; return; }
+        if (del.dataset.confirm === "0") { del.dataset.confirm = "1"; del.textContent = "حذف؟"; del.style.fontSize = "0.85rem"; return; }
         state.products = state.products.filter((x) => x.id !== p.id);
         state.logs = state.logs.filter((l) => l.product !== p.id);
         changed();
@@ -344,26 +345,26 @@ td input { padding: 4px 6px; font-size: 0.9rem; width: 5.5em; text-align: right;
 
       const dl = document.createElement("dl"); dl.className = "kv";
       const up = unitProfit(p);
-      const rows = [["Profit per delivered order, before ads", fmt(up)],
-        ["Max ad cost per delivered order", fmt(Math.max(0, up)), true]];
+      const rows = [["الربح لكل طلبية مُسلَّمة، قبل الإعلانات", fmt(up)],
+        ["أقصى تكلفة إعلان لكل طلبية مُسلَّمة", fmt(Math.max(0, up)), true]];
       if (st.n) {
-        rows.push(["Ad spend so far", fmt(st.spend)]);
-        rows.push(["Orders → delivered", st.orders + " → " + st.delivered + (st.rate !== null ? "  (" + Math.round(st.rate * 100) + "%)" : "")]);
-        rows.push(["Your ad cost per delivered order", st.cpd !== null ? fmt(st.cpd) : "–"]);
-        rows.push(["Profit or loss so far", fmt(st.profit), true]);
+        rows.push(["مصروف الإعلانات حتى الآن", fmt(st.spend)]);
+        rows.push(["الطلبيات ← المُسلَّمة", st.orders + " → " + st.delivered + (st.rate !== null ? "  (" + Math.round(st.rate * 100) + "%)" : "")]);
+        rows.push(["تكلفة إعلانك لكل طلبية مُسلَّمة", st.cpd !== null ? fmt(st.cpd) : "–"]);
+        rows.push(["الربح أو الخسارة حتى الآن", fmt(st.profit), true]);
       }
       kv(dl, rows);
       c.append(head, g, dl);
       if (st.pendingDays) {
         const n = document.createElement("p"); n.className = "empty";
-        n.textContent = st.pendingDays + " day(s) still waiting for delivered counts. The numbers will change when you fill them in.";
+        n.textContent = "أيام تنتظر عدد المُسلَّمة: " + st.pendingDays + ". ستتغير الأرقام عندما تملؤها.";
         c.append(n);
       }
       box.append(c);
     });
 
     const sel = $("l-product"); const prev = sel.value; sel.replaceChildren();
-    state.products.forEach((p) => { const o = document.createElement("option"); o.value = p.id; o.textContent = p.name || "Unnamed product"; sel.append(o); });
+    state.products.forEach((p) => { const o = document.createElement("option"); o.value = p.id; o.textContent = p.name || "منتج بلا اسم"; sel.append(o); });
     if (prev && state.products.some((p) => p.id === prev)) sel.value = prev;
   }
 
@@ -371,10 +372,10 @@ td input { padding: 4px 6px; font-size: 0.9rem; width: 5.5em; text-align: right;
     const t = $("logTable"); t.replaceChildren();
     if (!state.logs.length) {
       const tr = document.createElement("tr"); const td = document.createElement("td"); td.className = "empty";
-      td.textContent = "No days logged yet. Add your first day above."; tr.append(td); t.append(tr); return;
+      td.textContent = "لم تسجّل أي يوم بعد. أضف يومك الأول في الأعلى."; tr.append(td); t.append(tr); return;
     }
     const thead = document.createElement("thead"); const hr = document.createElement("tr");
-    [["Date", ""], ["Product", ""], ["Ad spend", "n"], ["Orders", "n"], ["Delivered", "n"], ["", ""]].forEach(([h, c]) => {
+    [["التاريخ", ""], ["المنتج", ""], ["الإعلانات", "n"], ["الطلبيات", "n"], ["المُسلَّمة", "n"], ["", ""]].forEach(([h, c]) => {
       const th = document.createElement("th"); th.textContent = h; if (c) th.className = c; hr.append(th);
     });
     thead.append(hr); t.append(thead);
@@ -388,7 +389,7 @@ td input { padding: 4px 6px; font-size: 0.9rem; width: 5.5em; text-align: right;
       ["spend", "orders", "delivered"].forEach((k) => {
         const td = document.createElement("td"); td.className = "n";
         const i = document.createElement("input"); i.type = "number"; i.min = "0"; i.id = "log-" + l.id + "-" + k;
-        i.setAttribute("aria-label", k + " on " + l.date);
+        i.setAttribute("aria-label", ({spend:"الإعلانات",orders:"الطلبيات",delivered:"المُسلَّمة"})[k] + " " + l.date);
         i.value = l[k] === null || l[k] === undefined ? "" : l[k];
         if (k === "delivered") i.placeholder = "?";
         i.addEventListener("change", () => { l[k] = i.value === "" ? (k === "delivered" ? null : 0) : num(i.value); changed(); });
@@ -396,7 +397,7 @@ td input { padding: 4px 6px; font-size: 0.9rem; width: 5.5em; text-align: right;
       });
       const x = document.createElement("td");
       const b = document.createElement("button"); b.type = "button"; b.className = "x"; b.textContent = "×";
-      b.setAttribute("aria-label", "Remove day " + l.date);
+      b.setAttribute("aria-label", "احذف يوم " + l.date);
       b.onclick = () => { state.logs = state.logs.filter((y) => y.id !== l.id); changed(); };
       x.append(b); tr.append(x); tb.append(tr);
     });
@@ -426,8 +427,8 @@ td input { padding: 4px 6px; font-size: 0.9rem; width: 5.5em; text-align: right;
   $("m-currency").addEventListener("change", () => { state.money.currency = $("m-currency").value.trim(); changed(); });
   function kvMoney() {
     const m = state.money; const adBudget = num(m.income) - num(m.essentials) - num(m.savings);
-    kv($("moneyResult"), [["Income", fmt(num(m.income))], ["− Food + bills", fmt(num(m.essentials))],
-      ["− Wedding savings", fmt(num(m.savings))], ["= Max for ads this month", fmt(Math.max(0, adBudget)), true]]);
+    kv($("moneyResult"), [["الدخل", fmt(num(m.income))], ["− الأكل + الفواتير", fmt(num(m.essentials))],
+      ["− ادخار الزواج", fmt(num(m.savings))], ["= أقصى مبلغ للإعلانات هذا الشهر", fmt(Math.max(0, adBudget)), true]]);
   }
   $("addProduct").onclick = () => {
     const id = uid();
@@ -437,12 +438,12 @@ td input { padding: 4px 6px; font-size: 0.9rem; width: 5.5em; text-align: right;
   };
   $("addLog").onclick = () => {
     const product = $("l-product").value;
-    if (!product) { $("logMsg").textContent = "Add a product first (section 2)."; return; }
+    if (!product) { $("logMsg").textContent = "أضف منتجاً أولاً (القسم ٢)."; return; }
     const dv = $("l-delivered").value;
     state.logs.push({ id: uid(), date: $("l-date").value || today(), product,
       spend: num($("l-spend").value), orders: num($("l-orders").value), delivered: dv === "" ? null : num(dv) });
     $("l-spend").value = ""; $("l-orders").value = ""; $("l-delivered").value = "";
-    $("logMsg").textContent = "Added.";
+    $("logMsg").textContent = "تمت الإضافة.";
     changed();
   };
   $("clearExamples").onclick = () => { state = emptyState(); render(); save(); };

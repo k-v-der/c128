@@ -1,31 +1,31 @@
-# Ideas
+# الأفكار
 
-Write ideas here so they stop following you around. Writing one down doesn't commit you to anything.
+اكتب أفكارك هنا حتى تتوقف عن ملاحقتك. كتابة فكرة لا تُلزمك بشيء.
 
-## Parking lot
+## موقف الأفكار
 - 
 - 
 - 
 
 ---
 
-## Pick one (when `now.md` is empty)
+## اختر واحدة (عندما يكون `now.md` فارغاً)
 
-Picking the wrong idea costs you less than picking none. Spend 10 minutes on this, no more.
+اختيار الفكرة الخطأ يكلّفك أقل من عدم الاختيار. خصّص لهذا 10 دقائق، لا أكثر.
 
-1. **Cut down to 3.** Choose the three ideas that pull at you most, without thinking too hard.
-2. **Score each from 1 to 3:**
+1. **قلّصها إلى 3.** اختر الأفكار الثلاث التي تجذبك أكثر، بدون تفكير طويل.
+2. **قيّم كل واحدة من 1 إلى 3:**
 
-| Idea | Excited? | Doable in ~4 weeks? | Moves my [direction](direction.md)? | Total |
+| الفكرة | متحمس؟ | ممكنة في ~4 أسابيع؟ | تخدم [اتجاهي](direction.md)؟ | المجموع |
 |------|:-:|:-:|:-:|:-:|
 | | | | | |
 | | | | | |
 | | | | | |
 
-3. **The highest total wins.** If two are tied, flip a coin. If you feel disappointed when it lands, pick the other one.
-4. Put the winner in [now.md](now.md) and write down the **first 2-minute step**.
-5. The others stay here. They aren't gone, just waiting.
+3. **الأعلى مجموعاً تفوز.** إذا تعادلت اثنتان، ارمِ عملة. إذا شعرت بخيبة عند النتيجة، اختر الأخرى.
+4. ضع الفائزة في [now.md](now.md) واكتب **أول خطوة من دقيقتين**.
+5. البقية تبقى هنا. لم تختفِ، هي فقط تنتظر.
 
-## Done / dropped
-*Projects you finished or chose to let go. Both count as decisions.*
+## منتهية / متروكة
+*مشاريع أنهيتها أو قررت تركها. كلاهما قرار.*
 - 

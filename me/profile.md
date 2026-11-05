@@ -1,29 +1,30 @@
-# Profile
+# من أنا
 
-*From the interviews. Edit whenever it stops being true.*
+*من المقابلات. عدّله متى لم يعد صحيحاً.*
 
-## Right now
-- I have a **job I like** and I want to grow in it. My work covers a bit of everything.
-- I run a **COD (cash-on-delivery) e-commerce store**. It's **launched and has small sales**.
-- I have about **5–15 hours a week** for my own projects.
+## الآن
+- عندي **عمل أحبه** وأريد أن أتطور فيه. عملي فيه من كل شيء قليلاً.
+- أدير **متجراً إلكترونياً بالدفع عند الاستلام (COD)**. **أطلقته وفيه مبيعات قليلة.**
+- عندي حوالي **5 إلى 15 ساعة في الأسبوع** لمشاريعي.
 
-## What I'm working toward
-- **Money to get married.** That's what everything else serves.
+## ما أعمل من أجله
+- **المال من أجل الزواج.** هذا ما يخدمه كل شيء آخر.
 
-## Ideas that keep coming back
-- Business / money
-- Creative work
-- E-commerce (COD)
+## أفكار تعود إليّ دائماً
+- التجارة والمال
+- العمل الإبداعي
+- التجارة الإلكترونية (الدفع عند الاستلام)
 
-## What gets in my way
-- **Too many ideas.** I struggle to pick one, so I freeze.
-- **Doubt it's worth it.** Mostly the fear that *it might not make money*.
-- **No routine.** My energy comes in **random bursts**.
+## ما يعطّلني
+- **أفكار كثيرة.** يصعب عليّ اختيار واحدة، فأتجمّد.
+- **أشك أن الأمر يستحق.** أكثر ما أخافه: *ألّا يربح*.
+- **الإعلانات تأكل مصروف الأكل** كل شهر، ولا أعرف الأرقام إلا في نهاية الحملة.
+- **لا روتين.** طاقتي تأتي **على دفعات عشوائية**.
 
-## How I work
-- I'll check this **whenever I need it**, so it has to make sense the moment I open it.
-- I like it **simple and minimal**.
-- **Energy comes in bursts**, so keep a ready-to-go list of tasks and grab one when the burst hits.
+## كيف أعمل
+- سأفتح هذا **عندما أحتاجه**، لذلك يجب أن يكون مفهوماً من أول نظرة.
+- أحب الأشياء **بسيطة**.
+- **الطاقة تأتي على دفعات**، لذلك أحتفظ بقائمة مهام جاهزة وآخذ منها عندما تأتي الدفعة.
 
-## Things that help me *(fill in as you learn)*
-- Seeing real numbers (orders, profit) beats guessing whether it's working.
+## أشياء تساعدني *(أضف كلما تعلمت)*
+- رؤية الأرقام الحقيقية (الطلبيات، الربح) أفضل من التخمين.

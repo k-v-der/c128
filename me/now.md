@@ -1,47 +1,42 @@
-# Now
+# الآن
 
-**Project:** Get my COD store to stop losing money, then grow it.
+**المشروع:** أجعل متجري يتوقف عن الخسارة، ثم أنمّيه.
 
-**Step 1 (now):** Protect my food money, and learn whether each campaign makes or loses money.
-**Step 2 (later):** Once I can see what works, put more money only into that.
+**الخطوة 1 (الآن):** أحمي مصروف الأكل، وأعرف هل كل حملة تربح أم تخسر.
+**الخطوة 2 (لاحقاً):** عندما أرى ما ينجح، أضع المال فيه فقط.
 
-**Next action:** Before the next campaign, fill in the break-even box below for the product.
+**الخطوة التالية:** افتح [المتتبع](https://claude.ai/artifact/2eQDNyDDQ2SbvzwWAsTvu4)، امسح الأمثلة، وأدخل منتجك الرئيسي.
 
 ---
 
-## Money rules (not optional)
-1. **Food and essentials come first.** On payday, set aside food and bills money *before* anything else. Keep it separate (another account or cash). **Ads never touch it.**
-2. **Fixed ad budget.** Decide each month how much I can afford to lose completely. Only that goes to ads, and the daily limit goes into the ads manager.
-3. **Kill rule.** If a product spends its test budget and I'm above break-even (box below), stop it. No "one more day".
-4. **No new campaign** until the last one has a row in the campaign log.
+## قواعد المال (إلزامية)
+1. **الأكل والضروريات أولاً.** يوم الراتب، ضع مال الأكل والفواتير جانباً *قبل* أي شيء. احتفظ به منفصلاً (حساب آخر أو نقداً). **الإعلانات لا تلمسه أبداً.**
+2. **ميزانية إعلانات ثابتة.** حدّد كل شهر المبلغ الذي تتحمل خسارته كاملاً. هذا فقط يذهب للإعلانات، وضع الحد اليومي في مدير الإعلانات.
+3. **قاعدة الإيقاف.** إذا استهلك المنتج ميزانية التجربة وما زال فوق نقطة التعادل، أوقفه. لا "يوم واحد آخر".
+4. **لا حملة جديدة** قبل تسجيل نتائج الحملة السابقة.
 
-## Break-even box (do once per product)
-| | Amount |
+## نقطة التعادل (مرة لكل منتج)
+| | المبلغ |
 |---|---:|
-| Selling price | _ |
-| − Product cost | _ |
-| − Delivery fee | _ |
-| − Packaging / call confirmation / other | _ |
-| **= Profit per delivered order, before ads** | _ |
-| **Max ad cost per *delivered* order** | same as above |
+| سعر البيع | _ |
+| − سعر شراء المنتج | _ |
+| − سعر التوصيل | _ |
+| − التغليف / التأكيد / أخرى | _ |
+| **= الربح لكل طلبية مُسلَّمة، قبل الإعلانات** | _ |
+| **أقصى تكلفة إعلان لكل طلبية *مُسلَّمة*** | نفس الرقم |
 
-> If ads cost more than this per *delivered* order, the product is losing money. On COD, count **delivered** orders, not just orders, because refused orders still cost you.
+> إذا كلّفتك الإعلانات أكثر من هذا لكل طلبية *مُسلَّمة*، فالمنتج يخسر. في الدفع عند الاستلام احسب **المُسلَّمة** فقط، لأن المرفوضة تكلّفك أيضاً.
 
-## Daily 2-minute log (while a campaign runs)
-*Copy three numbers each evening. That's all.*
+*المتتبع يحسب كل هذا تلقائياً. الجدول هنا للمرجع فقط.*
 
-| Date | Product | Ad spend today (ads manager) | New orders (store) | Delivered (delivery company) |
-|------|---------|----:|----:|----:|
-| | | | | |
-
-## Campaign log (one row when each campaign ends)
-| Product | Total ad spend | Orders | Delivered | Ad cost per delivered (spend ÷ delivered) | Under break-even? |
-|---------|---:|---:|---:|---:|:-:|
-| | | | | | |
-
-## Burst list
-- [ ] Fill in the break-even box for my current product
-- [ ] Set up a separate place for food and bills money
-- [ ] Set a daily ad limit I can afford to lose
-- [ ] Ask the delivery company for last month's delivered and refused counts
+## قائمة الدفعات
+*عندما تأتي الطاقة، خذ واحدة. وأضف إليها دائماً.*
+- [ ] أدخل منتجي الرئيسي في المتتبع
+- [ ] خصّص مكاناً منفصلاً لمال الأكل والفواتير
+- [ ] حدّد حداً يومياً للإعلانات أتحمّل خسارته
+- [ ] اطلب من شركة التوصيل عدد المُسلَّمة والمرفوضة للشهر الماضي
+- [ ] اتصل بالزبائن الذين رفضوا الاستلام واسألهم لماذا
 - [ ] 
+
+## السجل *(اختياري، سطر واحد كل مرة)*
+- _التاريخ_: ما فعلته
