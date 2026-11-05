@@ -1,0 +1,1106 @@
+<title>دفتر المال والمتجر</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: phone-first ledger. One column, four screens behind a bottom tab bar; forms open as a bottom sheet. */
+:root {
+  --bg: #f4f6f5;
+  --surface: #ffffff;
+  --fg: #15201c;
+  --muted: #5b6b65;
+  --line: #dbe2df;
+  --accent: #0f6b5c;
+  --accent-ink: #ffffff;
+  --good: #1b7a45; --good-bg: #e2f3e9;
+  --bad: #b3261e; --bad-bg: #fbe7e5;
+  --warn: #8a5a00; --warn-bg: #fbf0d9;
+  --font-body: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1513; --surface: #18201d; --fg: #e5ece9; --muted: #95a59f; --line: #2a3531;
+    --accent: #5cc4ae; --accent-ink: #0f1513;
+    --good: #5fcf8f; --good-bg: #15301f; --bad: #ff8a80; --bad-bg: #3a1a18; --warn: #f0c060; --warn-bg: #352a12;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1513; --surface: #18201d; --fg: #e5ece9; --muted: #95a59f; --line: #2a3531;
+  --accent: #5cc4ae; --accent-ink: #0f1513;
+  --good: #5fcf8f; --good-bg: #15301f; --bad: #ff8a80; --bad-bg: #3a1a18; --warn: #f0c060; --warn-bg: #352a12;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+main { max-width: 720px; margin: 0 auto; padding-block: 20px calc(96px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 18px; }
+h1 { font-size: 1.35rem; margin: 0; text-wrap: balance; }
+h2 { font-size: 1.05rem; margin: 0; text-wrap: balance; }
+h3 { font-size: 0.95rem; margin: 0; }
+p { margin: 0; }
+.sub { color: var(--muted); font-size: 0.88rem; }
+.status { color: var(--muted); font-size: 0.78rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.stack { display: grid; gap: 12px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.between { justify-content: space-between; }
+.n { font-family: var(--font-num); font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+.big { font-family: var(--font-num); font-size: 1.9rem; font-weight: 500; direction: ltr; unicode-bidi: isolate; line-height: 1.2; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 2px; }
+.tile .l { font-size: 0.78rem; color: var(--muted); font-weight: 600; }
+.tile .v { font-family: var(--font-num); font-size: 1.15rem; direction: ltr; unicode-bidi: isolate; text-align: right; }
+.bar { height: 10px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+.bar.over > i { background: var(--bad); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 0.8rem; background: var(--bg); border: 1px solid var(--line); border-radius: 99px; padding: 3px 10px; color: var(--fg); }
+button.chip { cursor: pointer; font: inherit; font-size: 0.8rem; }
+.pill { display: inline-block; font-size: 0.75rem; font-weight: 600; padding: 2px 9px; border-radius: 99px; white-space: nowrap; }
+.good { background: var(--good-bg); color: var(--good); }
+.bad { background: var(--bad-bg); color: var(--bad); }
+.warn { background: var(--warn-bg); color: var(--warn); }
+.none { background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+button {
+  font: inherit; font-weight: 600; font-size: 0.9rem; border-radius: 8px; padding: 9px 14px; cursor: pointer;
+  border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink);
+}
+button.ghost { background: transparent; color: var(--accent); }
+button.plain { background: transparent; border-color: var(--line); color: var(--fg); }
+button.x { background: transparent; border: none; color: var(--muted); padding: 2px 8px; font-size: 1.1rem; }
+button:disabled { opacity: .5; cursor: default; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.quick button { background: var(--surface); color: var(--fg); border: 1px solid var(--line); padding: 10px 4px; font-size: 0.8rem; font-weight: 600; }
+@media (max-width: 380px) { .quick { grid-template-columns: repeat(2, 1fr); } }
+input, select, textarea {
+  font: inherit; font-size: 1rem; color: var(--fg); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 8px; padding: 9px 10px; width: 100%; min-width: 0;
+}
+textarea { resize: vertical; min-height: 64px; }
+input[type="number"] { font-family: var(--font-num); direction: ltr; text-align: right; }
+label.f { display: grid; gap: 4px; font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+.fgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.list { display: grid; }
+.li { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--line); min-width: 0; }
+.li:last-child { border-bottom: none; }
+.li .d { min-width: 0; display: grid; gap: 1px; }
+.li .t { font-size: 0.9rem; }
+.li .m { font-size: 0.75rem; color: var(--muted); }
+.li .a { font-family: var(--font-num); direction: ltr; unicode-bidi: isolate; white-space: nowrap; font-size: 0.9rem; }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 3px 12px; font-size: 0.86rem; margin: 0; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; font-family: var(--font-num); direction: ltr; unicode-bidi: isolate; text-align: left; }
+.kv .tot { font-weight: 600; color: var(--fg); border-top: 1px solid var(--line); padding-top: 5px; }
+.empty { color: var(--muted); font-size: 0.88rem; }
+.flow { display: grid; gap: 6px; }
+.frow { display: grid; grid-template-columns: 1fr auto 1fr; gap: 6px; align-items: center; }
+.fbox { border: 1px solid var(--line); border-radius: 10px; padding: 8px 6px; text-align: center; background: var(--bg); display: grid; gap: 0; }
+.fbox span { font-size: 0.75rem; color: var(--muted); font-weight: 600; }
+.fbox b { font-family: var(--font-num); font-size: 1.25rem; font-weight: 500; }
+.fbox.sold { background: var(--good-bg); border-color: transparent; } .fbox.sold b, .fbox.sold span { color: var(--good); }
+.fbox.ret { background: var(--warn-bg); border-color: transparent; } .fbox.ret b, .fbox.ret span { color: var(--warn); }
+.farrow { display: flex; justify-content: center; }
+.farrow button, .frow > button { font-size: 0.75rem; padding: 5px 9px; background: transparent; color: var(--accent); border: 1px dashed var(--accent); }
+.pgroup { display: grid; gap: 6px; }
+.pgroup h3 { font-size: 0.8rem; color: var(--muted); }
+.pgroup .quick button { font-size: 0.78rem; }
+.share { display: flex; height: 12px; border-radius: 99px; overflow: hidden; background: var(--line); gap: 2px; }
+.share i { display: block; height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.78rem; color: var(--muted); }
+.legend span::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 3px; background: var(--c); margin-inline-end: 5px; vertical-align: middle; }
+.ghead { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; padding-top: 6px; border-top: 1px solid var(--line); }
+.ghead .a { font-family: var(--font-num); direction: ltr; unicode-bidi: isolate; font-weight: 600; }
+.g-money { --c: var(--accent); } .g-stock { --c: #c27a1a; } .g-owed { --c: #6b5bd2; } .g-assets { --c: #3a8fb7; }
+.ask { border: 1px dashed var(--accent); background: var(--surface); }
+.preview .li { gap: 8px; }
+details > summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 0.85rem; list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+nav.tabs {
+  position: fixed; inset: auto 0 0 0; z-index: 20; background: var(--surface); border-top: 1px solid var(--line);
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
+}
+nav.tabs a { text-align: center; text-decoration: none; color: var(--muted); font-size: 0.8rem; font-weight: 600; padding: 8px 2px; border-radius: 8px; }
+nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
+.sheet-bg { position: fixed; inset: 0; z-index: 30; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; }
+.sheet {
+  background: var(--surface); width: 100%; max-width: 560px; max-height: 88%; overflow-y: auto; border-radius: 16px 16px 0 0;
+  padding: 18px max(16px, env(safe-area-inset-right, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  display: grid; gap: 14px;
+}
+@media (prefers-reduced-motion: no-preference) { button { transition: opacity .15s; } button:hover:not(:disabled) { opacity: .88; } }
+</style>
+
+<main dir="rtl" lang="ar" id="app">
+  <header class="row between">
+    <div>
+      <h1>دفتر المال والمتجر</h1>
+      <p class="status" id="status">جارٍ التحميل…</p>
+    </div>
+  </header>
+
+  <!-- TODAY -->
+  <section id="v-today" class="stack" aria-label="اليوم">
+    <div class="card" id="weekCard"></div>
+    <a class="card" id="wealthMini" href="#money" style="text-decoration:none;color:inherit"></a>
+
+    <div class="card ask" id="checkin"></div>
+
+    <div class="card" id="smartCard">
+      <h2>ماذا حدث؟</h2>
+      <p class="sub">اكتب كما تتكلم، وأنا أرتّبه وأحسبه. يمكنك كتابة عدة أشياء في رسالة واحدة.</p>
+      <textarea id="smartText" placeholder="مثلاً: فليكسي 200، وكلت 450، اشتريت 30 دولار بـ 7500 من CCP"></textarea>
+      <div class="chips" id="smartEx"></div>
+      <div class="row"><button type="button" id="smartGo">سجّل</button><span class="status" id="smartMsg"></span></div>
+      <div id="smartOut"></div>
+    </div>
+
+    <div class="card">
+      <h2>أو اختر ما حدث</h2>
+      <div class="stack" id="quick"></div>
+    </div>
+
+    <div class="card">
+      <div class="row between"><h2>اليوم</h2><span class="n sub" id="todayDate"></span></div>
+      <div class="list" id="todayList"></div>
+    </div>
+  </section>
+
+  <!-- STORE -->
+  <section id="v-store" class="stack" aria-label="المتجر" hidden>
+    <div class="tiles" id="storeTiles"></div>
+    <div class="row between"><h2>كتالوج المنتجات</h2><button type="button" class="ghost" id="addProduct">+ منتج</button></div>
+    <div class="stack" id="catalog"></div>
+  </section>
+
+  <!-- CAMPAIGNS -->
+  <section id="v-camps" class="stack" aria-label="الحملات" hidden>
+    <div class="row between"><h2>الحملات</h2><button type="button" class="ghost" id="addCampaign">+ حملة جديدة</button></div>
+    <div class="stack" id="campList"></div>
+  </section>
+
+  <!-- GUIDE -->
+  <section id="v-guide" class="stack" aria-label="الدليل" hidden>
+    <div class="card">
+      <h2>الفكرة كلها في 3 كلمات</h2>
+      <dl class="kv" style="grid-template-columns:auto 1fr">
+        <dt><strong>الأرصدة</strong></dt><dd style="font-family:inherit;direction:rtl;text-align:right">ما عندك الآن: المال في كل مصدر، والسلعة في كل مكان.</dd>
+        <dt><strong>الحركات</strong></dt><dd style="font-family:inherit;direction:rtl;text-align:right">ما يحدث ويغيّر الأرصدة. أنت تسجّل الحركات فقط، والدفتر يحسب الأرصدة.</dd>
+        <dt><strong>الحملات</strong></dt><dd style="font-family:inherit;direction:rtl;text-align:right">تجمع إعلانات منتج ونتائجه، لتعرف هل تربح أم تخسر. أربعة أنواع: بيع من الستوك، بيع منتج البيت، تست، وشراكة (أنت تدفع الإعلانات وصديقك يشتري ويوصّل). لكل حملة نقطة تعادل = (الهامش ÷ 1.5) ÷ سعر الدولار.</dd>
+      </dl>
+    </div>
+    <div class="card">
+      <h2>طريق السلعة</h2>
+      <pre class="mermaid" dir="ltr">flowchart TD
+  B[شراء] --> H[البيت]
+  B --> W[مخزن شركة التوصيل]
+  H <-->|نقل| W
+  H -->|أرسلت طرود| T[في التوصيل]
+  W -->|أرسلت طرود| T
+  T -->|تسلّم الزبون| S[مُباعة: المال عند شركة التوصيل]
+  T -->|رجع مباشرة| D[نفس المكان: من البيت -50 دج، من المخزن مجاناً]
+  T -->|عالق| R[مرتجعة عالقة: من البيت -50 دج، من المخزن مجاناً]
+  R -->|وصلني المرتجع| H
+  R -->|وصلني المرتجع| W</pre>
+      <p class="sub">المرتجع نوعان. <strong>مباشر</strong>: يرجع وحده لنفس المكان الذي خرج منه، وتُخصم الرسوم فقط إن خرج من البيت. <strong>عالق</strong>: نفس الرسوم (50 دج إن خرج من البيت)، وتحتفظ به شركة التوصيل، فيبقى في خانة "عالقة" ويعدّ الأيام، حتى تسجّل "وصلني المرتجع". وإن لم تسجّل "أرسلت طرود"، يأخذ الدفتر السلعة مباشرة من المكان الذي خرجت منه.</p>
+    </div>
+    <div class="card">
+      <h2>طريق المال</h2>
+      <pre class="mermaid" dir="ltr">flowchart TD
+  I[دخل / راتب] --> C[الكاش أو CCP]
+  C <-->|تحويل| SB[مخبأ البيت: ادخار]
+  C -->|شراء دولار| Y[Bybit USDT]
+  Y -->|صرف إعلانات| A[الحملات]
+  C -->|شراء سلعة| ST[السلعة]
+  C -->|مصروف| E[أكل، نقل، فليكسي...]
+  D[شركة التوصيل] -->|استلمت من شركة التوصيل| C</pre>
+    </div>
+    <div class="card">
+      <h2>كل يوم (دقيقتان)</h2>
+      <ol class="stack" style="margin:0;padding-inline-start:1.3em;gap:6px">
+        <li>افتح <strong>اليوم</strong> وأجب عن الأسئلة. كل "نعم" تفتح لك الخانة المناسبة.</li>
+        <li>كل ما صرفته: اكتبه في <strong>ماذا حدث؟</strong>، مثلاً "فليكسي 200، أكل 450".</li>
+        <li>إن صرفت إعلانات: "صرفت 10$ على حملة المكواة".</li>
+        <li>إن وصلك خبر من شركة التوصيل: "تسلمو 3، رجع 1".</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h2>كل أسبوع (السبت، 5 دقائق)</h2>
+      <ol class="stack" style="margin:0;padding-inline-start:1.3em;gap:6px">
+        <li>انظر إلى <strong>ثروتك</strong>: هل زادت أم نقصت هذا الأسبوع؟</li>
+        <li>في <strong>الحملات</strong>: كل حملة عليها "أوقفه"؟ أوقفها.</li>
+        <li>في <strong>المال</strong>: هل يطابق الكاش وCCP ما في جيبك وحسابك؟ إن لم يطابق، صحّح رصيد البداية أو أضف المصروف الناقص.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h2>إذا ضعت</h2>
+      <p>اسأل نفسك سؤالاً واحداً: <strong>ماذا تحرّك؟</strong> مال؟ سلعة؟ إعلان؟ ثم اختر الزر من "أو اختر ما حدث" في صفحة اليوم. وإن لم تعرف، اكتب ما حدث بكلامك في "ماذا حدث؟"، أو اسألني في المحادثة.</p>
+    </div>
+  </section>
+
+  <!-- MONEY -->
+  <section id="v-money" class="stack" aria-label="المال" hidden>
+    <div class="card" id="netCard"></div>
+    <div class="card"><h2>مصادر المال</h2><div class="list" id="acctList"></div></div>
+    <div class="card"><h2>الديون</h2><div id="debtBox"></div></div>
+    <div class="card"><h2>كل العمليات</h2><div class="list" id="allList"></div></div>
+    <div class="card">
+      <h2>الإعدادات</h2>
+      <div class="fgrid">
+        <label class="f">مصروف الأسبوع (دج)<input type="number" id="s-weekly" min="0"></label>
+        <label class="f">سعر الدولار (دج لكل 1$)<input type="number" id="s-rate" min="0"></label>
+        <label class="f">رسوم المرتجع من البيت (دج)<input type="number" id="s-ret" min="0"></label>
+        <label class="f">معامل نقطة التعادل<input type="number" id="s-bef" min="1" step="0.1"></label>
+        <label class="f">الوزن المجاني لكل طرد (كغ)<input type="number" id="s-kgfree" min="0"></label>
+        <label class="f">رسوم كل كيلو إضافي (دج)<input type="number" id="s-kgfee" min="0"></label>
+      </div>
+      <p class="sub">رصيد البداية لكل مصدر (كم كان عندك قبل أن تبدأ التسجيل):</p>
+      <div class="fgrid" id="openGrid"></div>
+      <div class="row"><button type="button" id="saveSettings">احفظ الإعدادات</button><span class="status" id="setMsg"></span></div>
+    </div>
+  </section>
+</main>
+
+<nav class="tabs" dir="rtl" lang="ar" aria-label="الأقسام">
+  <a href="#today" data-v="today">اليوم</a>
+  <a href="#store" data-v="store">المتجر</a>
+  <a href="#campaigns" data-v="camps">الحملات</a>
+  <a href="#money" data-v="money">المال</a>
+  <a href="#guide" data-v="guide">الدليل</a>
+</nav>
+
+<div id="sheetRoot"></div>
+
+<script>
+(function () {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const num = (v) => { const n = parseFloat(String(v ?? "").replace(",", ".")); return isFinite(n) ? n : 0; };
+  const today = () => new Date().toLocaleDateString("en-CA");
+  const fmt = (n) => Math.round(n).toLocaleString("en-US") + " دج";
+  const usd = (n) => "$" + (Math.round(n * 100) / 100).toLocaleString("en-US");
+
+  const ACCTS = {
+    cash: { n: "الكاش (مصروف الجيب)", cur: "DZD" },
+    stash: { n: "مخبأ البيت (ادخار)", cur: "DZD" },
+    ccp: { n: "CCP / بريدي موب", cur: "DZD" },
+    delivery: { n: "عند شركة التوصيل", cur: "DZD" },
+    bybit: { n: "Bybit (USDT)", cur: "USD" }
+  };
+  const CATS = {
+    food: { n: "أكل", living: true }, transport: { n: "نقل", living: true }, bills: { n: "فواتير", living: true },
+    flexy: { n: "فليكسي", living: true }, living_other: { n: "معيشة أخرى", living: true },
+    shipping: { n: "Yassir / نقل الطرود", living: false }, packaging: { n: "تغليف", living: false }, store_other: { n: "مصاريف متجر أخرى", living: false }
+  };
+  const CTYPES = { stock: "بيع من الستوك (المخزن)", home: "بيع منتج البيت", test: "حملة تست", partner: "شراكة (منتج صديقي)" };
+  const LOCS = { home: "البيت", warehouse: "مخزن شركة التوصيل" };
+  const DEF = { weekly: 7500, usdRate: 257, beFactor: 1.5, returnFee: 50, kgFree: 5, kgFee: 50, open: { cash: 0, stash: 0, ccp: 0, delivery: 0, bybit: 0 } };
+  const S = { entries: [], products: [], campaigns: [], assets: [], settings: JSON.parse(JSON.stringify(DEF)) };
+
+  // ---------------- storage ----------------
+  let db = null, sample = null;
+  const LS = "money-book-v1";
+  function setStatus(t) { $("status").textContent = t; }
+  function lsSave() { try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) {} }
+  function lsLoad() { try { const s = localStorage.getItem(LS); if (s) Object.assign(S, JSON.parse(s)); } catch (e) {} }
+  async function put(col, obj) {
+    if (!obj.id) obj.id = uid();
+    if (col === "settings") { S.settings = obj; } else {
+      const arr = S[col]; const i = arr.findIndex((x) => x.id === obj.id);
+      if (i >= 0) arr[i] = obj; else arr.push(obj);
+    }
+    render();
+    if (db) {
+      try { const data = Object.assign({}, obj); delete data.id; await db.collection(col).doc(obj.id).set(data); }
+      catch (e) { setStatus(e && e.code === "quota_exceeded" ? "المساحة ممتلئة. احذف عمليات قديمة." : "تعذّر الحفظ. حاول مرة أخرى."); }
+    } else lsSave();
+  }
+  async function del(col, id) {
+    S[col] = S[col].filter((x) => x.id !== id); render();
+    if (db) { try { await db.collection(col).doc(id).delete(); } catch (e) { setStatus("تعذّر الحذف."); } } else lsSave();
+  }
+  async function initStore() {
+    if (!window.claude || !window.claude.use) { lsLoad(); render(); setStatus("محفوظ على هذا الجهاز فقط."); return; }
+    window.claude.use("sample").then((s) => { sample = s; renderSmartAvail(); }).catch(() => { sample = null; renderSmartAvail(); });
+    try { db = await window.claude.use("db"); } catch (e) { db = null; }
+    if (!db) { lsLoad(); render(); setStatus("محفوظ على هذا الجهاز فقط."); return; }
+    let got = 0; const need = 5;
+    const timer = setTimeout(() => { if (got < need) setStatus("لا يمكن الوصول إلى بياناتك بعد. تحقق من الاتصال."); }, 10000);
+    const mark = (snap) => { if (!snap.metadata.fromCache) { got++; if (got >= need) { clearTimeout(timer); setStatus("محفوظ في حسابك. لا يراه أحد غيرك."); } } };
+    const onErr = () => { clearTimeout(timer); setStatus("انقطع الاتصال بالبيانات. أعد فتح الصفحة."); };
+    ["entries", "products", "campaigns", "assets"].forEach((col) => {
+      db.collection(col).onSnapshot((snap) => { S[col] = snap.docs.map((d) => Object.assign({ id: d.id }, d.data())); mark(snap); render(); }, onErr);
+    });
+    db.collection("settings").doc("main").onSnapshot((snap) => {
+      S.settings = Object.assign(JSON.parse(JSON.stringify(DEF)), snap.exists ? snap.data() : {}, { id: "main" });
+      S.settings.open = Object.assign({}, DEF.open, S.settings.open || {});
+      mark(snap); render();
+    }, onErr);
+  }
+
+  // ---------------- math ----------------
+  function rate() {
+    if (num(S.settings.usdRate) > 0) return num(S.settings.usdRate);
+    const ex = S.entries.filter((e) => e.t === "transfer" && e.to === "bybit" && ACCTS[e.from] && ACCTS[e.from].cur === "DZD" && num(e.amountTo) > 0)
+      .sort((a, b) => (b.date + b.ts).localeCompare(a.date + a.ts))[0];
+    return ex ? num(ex.amount) / num(ex.amountTo) : 0;
+  }
+  const prodById = (id) => S.products.find((p) => p.id === id);
+  const campById = (id) => S.campaigns.find((c) => c.id === id);
+
+  // What the delivery company owes you for a results entry: the stored net (actual or computed).
+  const recv = (e) => (e.recv !== undefined ? num(e.recv) : num(e.delivered) * num(e.unit));
+  const pieces = (e) => (e.pieces !== undefined ? num(e.pieces) : num(e.delivered));
+  function weightFee(weightKg, kgFree, kgFee) { return Math.max(0, Math.ceil(weightKg - kgFree)) * kgFee; }
+  function expectedNet(p, colis, pcs, discount, loc) {
+    colis = Math.max(1, colis); const perColis = num(p.weight) * pcs / colis;
+    const wf = colis * weightFee(perColis, num(S.settings.kgFree), num(S.settings.kgFee));
+    const wh = loc === "warehouse" ? colis * num(p.whFee) : 0;
+    return { net: pcs * num(p.price) - num(discount) - wf - wh, wf, wh };
+  }
+  function balances() {
+    const b = {}; Object.keys(ACCTS).forEach((k) => (b[k] = num(S.settings.open && S.settings.open[k])));
+    const owedToMe = {}, iOwe = {};
+    const add = (a, v) => { if (a in b) b[a] += v; };
+    const bump = (o, p, v) => { o[p] = (o[p] || 0) + v; };
+    S.entries.forEach((e) => {
+      switch (e.t) {
+        case "expense": add(e.acct, -num(e.amount)); break;
+        case "income": add(e.acct, num(e.amount)); break;
+        case "transfer": add(e.from, -num(e.amount)); add(e.to, num(e.amountTo) > 0 ? num(e.amountTo) : num(e.amount)); break;
+        case "stock": add(e.acct, -num(e.qty) * num(e.unitCost)); break;
+        case "ad": add("bybit", -num(e.usd)); break;
+        case "partner_settle": add(e.acct, e.kind === "out" ? -num(e.amount) : num(e.amount)); break;
+        case "results": add("delivery", recv(e) - num(e.returned) * num(e.fee)); break;
+        case "debt": {
+          const a = num(e.amount), p = (e.person || "؟").trim();
+          if (e.dir === "they") { if (e.kind === "new") { bump(owedToMe, p, a); add(e.acct, -a); } else { bump(owedToMe, p, -a); add(e.acct, a); } }
+          else { if (e.kind === "new") { bump(iOwe, p, a); add(e.acct, a); } else { bump(iOwe, p, -a); add(e.acct, -a); } }
+          break;
+        }
+      }
+    });
+    return { b, owedToMe, iOwe };
+  }
+
+  function avgCost(p) {
+    const st = S.entries.filter((e) => e.t === "stock" && e.product === p.id);
+    const q = st.reduce((a, e) => a + num(e.qty), 0);
+    return q > 0 ? st.reduce((a, e) => a + num(e.qty) * num(e.unitCost), 0) / q : num(p.cost);
+  }
+  function stats(filter, p) {
+    const es = S.entries.filter(filter);
+    const r = rate();
+    const s = { adUsd: 0, adDzd: 0, orders: 0, delivered: 0, pieces: 0, returned: 0, revenue: 0, returnCost: 0, extra: 0, bought: 0 };
+    es.forEach((e) => {
+      if (e.t === "ad") { s.adUsd += num(e.usd); s.adDzd += num(e.usd) * (num(e.rate) || r); s.orders += num(e.orders); }
+      if (e.t === "p_results") { s.orders += num(e.orders); s.delivered += num(e.delivered); s.returned += num(e.returned); }
+      if (e.t === "partner_settle") s.settled = (s.settled || 0) + (e.kind === "out" ? -num(e.amount) : num(e.amount));
+      if (e.t === "results") { s.orders += num(e.orders); s.delivered += num(e.delivered); s.returned += num(e.returned); s.pieces += pieces(e); s.revenue += recv(e); s.returnCost += num(e.returned) * num(e.fee); }
+      if (e.t === "ship") s.orders += num(e.orders);
+      if (e.t === "expense") s.extra += num(e.amount);
+      if (e.t === "stock") s.bought += num(e.qty);
+    });
+    const ac = p ? avgCost(p) : 0;
+    s.cogs = s.pieces * ac;
+    s.profit = s.revenue - s.cogs - s.adDzd - s.returnCost - s.extra;
+    s.cpd = s.delivered > 0 ? s.adDzd / s.delivered : null;
+    s.maxAd = p ? expectedNet(p, 1, 1, 0, "warehouse").net - ac : 0;
+    s.rateD = s.delivered + s.returned > 0 ? s.delivered / (s.delivered + s.returned) : null;
+    s.avgCost = ac;
+    return s;
+  }
+  function productStats(p) {
+    const s = stats((e) => e.product === p.id, p);
+    // Walk this product's movements in time order. States: home, warehouse, transit (out for delivery), retour (refused, not back yet), sold, damaged.
+    s.st = { home: 0, warehouse: 0, transit: 0, retour: 0, sold: 0, damaged: 0 };
+    const es = S.entries.filter((e) => e.product === p.id).sort((a, b) => ((a.date || "") + (a.ts || "")).localeCompare((b.date || "") + (b.ts || "")));
+    const stuckQ = [];
+    const take = (n, loc) => { const t = Math.min(n, Math.max(0, s.st.transit)); s.st.transit -= t; s.st[loc] -= n - t; };
+    es.forEach((e) => {
+      switch (e.t) {
+        case "stock": s.st[LOCS[e.loc] ? e.loc : "home"] += num(e.qty); break;
+        case "stock_move": if (LOCS[e.from] && LOCS[e.to]) { s.st[e.from] -= num(e.qty); s.st[e.to] += num(e.qty); } break;
+        case "ship": s.st[LOCS[e.from] ? e.from : "warehouse"] -= num(e.qty); s.st.transit += num(e.qty); break;
+        case "results": {
+          const loc = LOCS[e.loc] ? e.loc : "warehouse"; const dp = pieces(e); const rp = num(e.returned);
+          if (e.v === 2) {
+            take(dp, loc); take(rp, loc);
+            if (e.rtype === "stuck") { s.st.retour += rp; if (rp) stuckQ.push({ date: e.date, n: rp }); } else s.st[loc] += rp;
+          } else s.st[loc] -= dp;
+          s.st.sold += dp; break;
+        }
+        case "retour_in": { let left = num(e.qty); while (left > 0 && stuckQ.length) { const k = Math.min(left, stuckQ[0].n); stuckQ[0].n -= k; left -= k; if (!stuckQ[0].n) stuckQ.shift(); } }
+          s.st.retour -= num(e.qty); if (e.to === "damaged") s.st.damaged += num(e.qty); else s.st[LOCS[e.to] ? e.to : "home"] += num(e.qty); break;
+      }
+    });
+    s.loc = { home: s.st.home, warehouse: s.st.warehouse };
+    s.stuck = stuckQ.filter((q) => q.n > 0);
+    s.stuckDays = s.stuck.length ? Math.round((new Date(today() + "T12:00:00") - new Date(s.stuck[0].date + "T12:00:00")) / 864e5) : 0;
+    s.stock = s.st.home + s.st.warehouse + s.st.transit + s.st.retour;
+    s.stockValue = Math.max(0, s.stock) * s.avgCost;
+    s.camps = S.campaigns.filter((c) => c.product === p.id).length;
+    return s;
+  }
+  function verdict(s, hasData) {
+    if (!hasData) return { c: "none", t: "لا توجد أرقام بعد" };
+    if (s.maxAd <= 0) return { c: "bad", t: "يخسر حتى قبل الإعلانات" };
+    if (s.profit >= 0) return { c: "good", t: "يربح" };
+    if (s.cpd !== null && s.cpd > s.maxAd) return { c: "bad", t: "الإعلان أغلى من الربح. أوقفه أو غيّر شيئاً" };
+    return { c: "warn", t: "يخسر حتى الآن. راقبه" };
+  }
+
+  function weekStart(d) { const x = new Date(d + "T12:00:00"); const diff = (x.getDay() - 6 + 7) % 7; x.setDate(x.getDate() - diff); return x.toLocaleDateString("en-CA"); }
+
+  // ---------------- descriptions ----------------
+  const pname = (id) => (prodById(id) && prodById(id).name) || "منتج";
+  const aname = (k) => (ACCTS[k] && ACCTS[k].n) || (k === "none" ? "بدون مال" : "؟");
+  function describe(e) {
+    switch (e.t) {
+      case "expense": return { t: (CATS[e.cat] ? CATS[e.cat].n : "مصروف") + (e.note ? " · " + e.note : ""), m: "من " + aname(e.acct) + (e.product ? " · " + pname(e.product) : ""), a: "−" + fmt(num(e.amount)) };
+      case "income": return { t: "دخل" + (e.note ? " · " + e.note : ""), m: "إلى " + aname(e.acct), a: "+" + fmt(num(e.amount)) };
+      case "transfer": {
+        const fc = ACCTS[e.from] ? ACCTS[e.from].cur : "DZD", tc = ACCTS[e.to] ? ACCTS[e.to].cur : "DZD";
+        const a = fc === "USD" ? usd(num(e.amount)) : fmt(num(e.amount));
+        const b = num(e.amountTo) > 0 ? (tc === "USD" ? usd(num(e.amountTo)) : fmt(num(e.amountTo))) : "";
+        return { t: (e.to === "bybit" && fc === "DZD" ? "شراء دولار" : "تحويل"), m: aname(e.from) + " ← " + aname(e.to) + (b && b !== a ? " · وصل " + b : ""), a: a };
+      }
+      case "stock": return { t: "شراء ستوك · " + pname(e.product), m: num(e.qty) + " قطعة × " + fmt(num(e.unitCost)) + " · في " + (LOCS[e.loc] || LOCS.home) + " · من " + aname(e.acct), a: "−" + fmt(num(e.qty) * num(e.unitCost)) };
+      case "ship": return { t: "أرسلت طرود · " + pname(e.product), m: num(e.qty) + " قطعة في " + num(e.colis) + " طرد · من " + (LOCS[e.from] || ""), a: "" };
+      case "retour_in": return { t: "وصلني المرتجع · " + pname(e.product), m: num(e.qty) + " قطعة · " + (e.to === "damaged" ? "تالفة" : "إلى " + (LOCS[e.to] || "")), a: "" };
+      case "stock_move": return { t: "نقل ستوك · " + pname(e.product), m: num(e.qty) + " قطعة · " + (LOCS[e.from] || "") + " ← " + (LOCS[e.to] || ""), a: "" };
+      case "ad": { const c = campById(e.campaign); return { t: "إعلانات · " + (c ? cLabel(c) : pname(e.product)), m: (num(e.orders) ? num(e.orders) + " طلبية · " : "") + "بسعر " + Math.round(num(e.rate) || rate()) + " دج", a: "−" + usd(num(e.usd)) }; }
+      case "p_results": { const c = campById(e.campaign); return { t: "نتائج شراكة · " + (c ? cLabel(c) : ""), m: "طلبيات " + num(e.orders) + " · مُسلَّمة " + num(e.delivered) + " · مرتجعة " + num(e.returned), a: "" }; }
+      case "partner_settle": { const c = campById(e.campaign); return { t: (e.kind === "out" ? "دفعت للشريك" : "استلمت من الشريك") + (c && c.partner ? " · " + c.partner : ""), m: (c ? c.name : "") + " · " + aname(e.acct), a: (e.kind === "out" ? "−" : "+") + fmt(num(e.amount)) }; }
+      case "results": return { t: "نتائج · " + pname(e.product), m: (num(e.orders) ? "طلبيات " + num(e.orders) + " · " : "") + "مُسلَّمة " + num(e.delivered) + (pieces(e) !== num(e.delivered) ? " (" + pieces(e) + " قطعة)" : "") + (num(e.returned) ? " · مرتجعة " + num(e.returned) + (e.rtype === "stuck" ? " (عالقة)" : " (رجعت)") + (num(e.fee) ? " −" + fmt(num(e.returned) * num(e.fee)) : "") : "") + (num(e.discount) ? " · تخفيض " + fmt(num(e.discount)) : "") + (num(e.wf) ? " · وزن " + fmt(num(e.wf)) : "") + (num(e.wh) ? " · مخزن " + fmt(num(e.wh)) : "") + (e.actual ? " · مبلغ حقيقي" : ""), a: "+" + fmt(recv(e) - num(e.returned) * num(e.fee)) };
+      case "debt": {
+        const who = e.person || "؟";
+        const t = e.dir === "they" ? (e.kind === "new" ? "سلّفت " + who : who + " ردّ لي") : (e.kind === "new" ? "تسلّفت من " + who : "رددت لـ " + who);
+        return { t, m: e.acct && e.acct !== "none" ? aname(e.acct) : "بدون حركة مال", a: fmt(num(e.amount)) };
+      }
+      case "campaign_new": return { t: "حملة جديدة · " + (e.name || ""), m: (CTYPES[e.type] || "") + " · " + (e.type === "partner" ? (e.pname || "") : pname(e.product)) + (num(e.budgetUsd) ? " · ميزانية " + usd(num(e.budgetUsd)) : ""), a: "" };
+      case "asset_new": return { t: "شيء له قيمة · " + (e.name || ""), m: e.where || "", a: fmt(num(e.value)) };
+      case "product_new": return { t: "منتج جديد · " + (e.name || ""), m: "سعر البيع " + fmt(num(e.price)) + " · التكلفة " + fmt(num(e.cost)) + (num(e.weight) ? " · " + num(e.weight) + " كغ" : ""), a: "" };
+    }
+    return { t: "عملية", m: "", a: "" };
+  }
+  function liRow(e, onDel) {
+    const d = describe(e); const r = el("div", "li");
+    const box = el("div", "d"); box.append(el("span", "t", d.t), el("span", "m", (e.date ? e.date + " · " : "") + d.m));
+    const right = el("div", "row"); right.append(el("span", "a", d.a));
+    if (onDel) {
+      const b = el("button", "x", "×"); b.type = "button"; b.setAttribute("aria-label", "احذف");
+      b.onclick = () => { if (b.dataset.c) onDel(); else { b.dataset.c = "1"; b.textContent = "حذف؟"; b.style.fontSize = "0.8rem"; } };
+      right.append(b);
+    }
+    r.append(box, right); return r;
+  }
+
+  // ---------------- forms (bottom sheet) ----------------
+  const acctOpts = (withNone) => Object.keys(ACCTS).map((k) => [k, ACCTS[k].n]).concat(withNone ? [["none", "بدون حركة مال"]] : []);
+  const dzdAcctOpts = () => Object.keys(ACCTS).filter((k) => ACCTS[k].cur === "DZD").map((k) => [k, ACCTS[k].n]);
+  const prodOpts = () => S.products.map((p) => [p.id, p.name]);
+  const cLabel = (c) => c.name + " · " + (c.type === "partner" ? (c.pname || "شراكة") : pname(c.product));
+  const campOpts = () => S.campaigns.filter((c) => c.status !== "stopped").map((c) => [c.id, cLabel(c)]);
+  const campOptsOwn = () => S.campaigns.filter((c) => c.status !== "stopped" && c.type !== "partner").map((c) => [c.id, cLabel(c)]);
+  const campOptsPartner = () => S.campaigns.filter((c) => c.type === "partner").map((c) => [c.id, cLabel(c)]);
+  const catOpts = (living) => Object.keys(CATS).filter((k) => living === undefined || CATS[k].living === living).map((k) => [k, CATS[k].n]);
+
+  const locOpts = (first) => { const k = Object.keys(LOCS); if (first === "warehouse") k.reverse(); return k.map((x) => [x, LOCS[x]]); };
+  const campOptsOpt = () => [["", "— بدون حملة"]].concat(campOptsOwn());
+  const FORMS = {
+    expense: { title: "مصروف", fields: [["amount", "المبلغ (دج)", "number"], ["cat", "الفئة", "select", () => catOpts()], ["acct", "من أين", "select", () => dzdAcctOpts()], ["product", "منتج (اختياري)", "select", () => [["", "—"]].concat(prodOpts())], ["note", "ملاحظة", "text"], ["date", "التاريخ", "date"]] },
+    income: { title: "دخل", fields: [["amount", "المبلغ (دج)", "number"], ["acct", "إلى أين", "select", () => dzdAcctOpts()], ["note", "من أين جاء (راتب، بيع...)", "text"], ["date", "التاريخ", "date"]] },
+    transfer: { title: "تحويل / شراء دولار", hint: "لشراء دولار: من CCP أو الكاش إلى Bybit، واكتب الدينار الذي دفعته والدولار الذي وصل. ولتحويل شركة التوصيل: من شركة التوصيل إلى CCP.", fields: [["from", "من", "select", () => acctOpts()], ["to", "إلى", "select", () => acctOpts()], ["amount", "المبلغ الذي خرج", "number"], ["amountTo", "المبلغ الذي وصل (إن اختلفت العملة)", "number"], ["date", "التاريخ", "date"]] },
+    stock: { title: "شراء ستوك", needs: "product", fields: [["product", "المنتج", "select", prodOpts], ["qty", "الكمية", "number"], ["unitCost", "سعر القطعة (دج)", "number"], ["loc", "أين وضعتها", "select", () => locOpts("home")], ["acct", "من أين دفعت", "select", () => dzdAcctOpts()], ["date", "التاريخ", "date"]] },
+    stock_move: { title: "نقل ستوك", needs: "product", hint: "مثلاً: أخذت 10 قطع من البيت إلى مخزن شركة التوصيل.", fields: [["product", "المنتج", "select", prodOpts], ["qty", "الكمية", "number"], ["from", "من", "select", () => locOpts("home")], ["to", "إلى", "select", () => locOpts("warehouse")], ["date", "التاريخ", "date"]] },
+    ad: { title: "صرف إعلانات", needs: "campaign", hint: "انقل الرقمين من مدير الإعلانات: المبلغ المصروف وعدد الطلبيات.", fields: [["campaign", "الحملة", "select", campOpts], ["usd", "المبلغ ($)", "number"], ["orders", "طلبيات جاءت (اختياري)", "number"], ["date", "التاريخ", "date"]] },
+    p_results: { title: "نتائج حملة الشراكة", hint: "صديقك يرسل ويوصّل. اكتب ما أخبرك به.", fields: [["campaign", "الحملة", "select", campOptsPartner], ["orders", "طلبيات", "number"], ["delivered", "مُسلَّمة", "number"], ["returned", "مرتجعة", "number"], ["date", "التاريخ", "date"]] },
+    partner_settle: { title: "تسوية مع الشريك", hint: "عندما تحسبان وتتقاسمان.", fields: [["campaign", "الحملة", "select", campOptsPartner], ["kind", "ماذا حدث", "select", () => [["in", "استلمت منه"], ["out", "دفعت له"]]], ["amount", "المبلغ (دج)", "number"], ["acct", "في أي حساب", "select", () => dzdAcctOpts()], ["date", "التاريخ", "date"]] },
+    ship: { title: "أرسلت طرود", needs: "product", hint: "عندما تؤكد طلبيات وتخرج السلعة للتوصيل. السلعة تنتقل إلى \"في التوصيل\".", fields: [["product", "المنتج", "select", prodOpts], ["campaign", "الحملة", "select", campOptsOpt], ["from", "خرجت من", "select", () => locOpts("warehouse")], ["qty", "عدد القطع", "number"], ["colis", "عدد الطرود", "number"], ["orders", "طلبيات وصلتك من الإعلان (اختياري)", "number"], ["date", "التاريخ", "date"]] },
+    retour_in: { title: "وصلني المرتجع", needs: "product", hint: "عندما ترجع لك السلعة المرفوضة فعلاً.", fields: [["product", "المنتج", "select", prodOpts], ["qty", "عدد القطع", "number"], ["to", "أين وضعتها", "select", () => locOpts("home").concat([["damaged", "تالفة / ضاعت"]])], ["date", "التاريخ", "date"]] },
+    results: { title: "نتيجة التوصيل", needs: "product", hint: "كم طرد تسلّمه الزبون وكم رجع. التخفيض: كل ما نقصته للزبون في السعر أو التوصيل. إن كتبت المبلغ الصافي من كشف شركة التوصيل، يُستعمل بدل الحساب.", fields: [["product", "المنتج", "select", prodOpts], ["campaign", "الحملة", "select", campOptsOpt], ["loc", "الطرود خرجت من", "select", () => locOpts("warehouse")], ["delivered", "طرود تسلّمها الزبون", "number"], ["pieces", "عدد القطع المُسلَّمة (إن أخذ زبون أكثر من واحدة)", "number"], ["discount", "مجموع التخفيضات (دج)", "number"], ["returned", "طرود رجعت (مرتجعة)", "number"], ["rtype", "المرتجع", "select", () => [["direct", "رجع مباشرة لنفس المكان"], ["stuck", "عالق عند شركة التوصيل"]]], ["actual", "المبلغ الصافي من كشف شركة التوصيل (اختياري)", "number"], ["date", "التاريخ", "date"]] },
+    debt: { title: "دين", fields: [["person", "الشخص", "text"], ["dir", "النوع", "select", () => [["they", "هو مدين لي"], ["me", "أنا مدين له"]]], ["kind", "ماذا حدث", "select", () => [["new", "دين جديد"], ["pay", "تسديد"]]], ["amount", "المبلغ (دج)", "number"], ["acct", "المال خرج/دخل من", "select", () => dzdAcctOpts().concat([["none", "بدون حركة مال"]])], ["date", "التاريخ", "date"]] },
+    campaign_new: { title: "حملة", fields: [
+      ["type", "نوع الحملة", "select", () => Object.entries(CTYPES)],
+      ["product", "المنتج", "select", prodOpts, { show: (v) => v.type !== "partner" }],
+      ["partner", "اسم الشريك", "text", null, { show: (v) => v.type === "partner" }],
+      ["pname", "اسم المنتج", "text", null, { show: (v) => v.type === "partner" }],
+      ["sellPrice", "سعر البيع (دج)", "number", null, { show: (v) => v.type === "partner" }],
+      ["buyPrice", "سعر الشراء (دج)", "number", null, { show: (v) => v.type === "partner" }],
+      ["share", "نصيبي من الربح (%)", "number", null, { show: (v) => v.type === "partner" }],
+      ["name", "اسم الحملة", "text"], ["budgetUsd", "ميزانية التجربة ($)", "number"], ["date", "تاريخ البداية", "date"]] },
+    asset_new: { title: "شيء له قيمة", hint: "أي شيء تملكه وله قيمة ولم يُسجَّل في مكان آخر: ذهب، هاتف، دراجة، سلعة غير المنتجات...", fields: [["name", "ما هو", "text"], ["value", "قيمته التقريبية (دج)", "number"], ["where", "أين هو", "text"], ["date", "منذ متى", "date"]] },
+    product_new: { title: "منتج", hint: "سعر البيع العادي للقطعة بدون التوصيل. التخفيضات تكتبها عند كل تسليم.", fields: [["name", "اسم المنتج", "text"], ["price", "سعر البيع للقطعة (دج)", "number"], ["cost", "تكلفة القطعة (دج)", "number"], ["weight", "وزن القطعة (كغ)", "number"], ["whFee", "رسوم المخزن لكل طرد مُسلَّم (دج)", "number"]] }
+  };
+
+  function openSheet(type, preset, onSave) {
+    const F = FORMS[type]; const root = $("sheetRoot"); root.replaceChildren();
+    const bg = el("div", "sheet-bg"); const sh = el("form", "sheet"); sh.dir = "rtl"; sh.lang = "ar";
+    const head = el("div", "row between"); head.append(el("h2", "", F.title));
+    const close = el("button", "x", "×"); close.type = "button"; close.setAttribute("aria-label", "إغلاق"); close.onclick = () => root.replaceChildren();
+    head.append(close); sh.append(head);
+    if (F.needs === "product" && !S.products.length) { sh.append(el("p", "empty", "أضف منتجاً أولاً.")); const b = el("button", "", "+ منتج جديد"); b.type = "button"; b.onclick = () => openSheet("product_new"); sh.append(b); bg.append(sh); root.append(bg); return; }
+    if (F.needs === "campaign" && !campOpts().length) { sh.append(el("p", "empty", "لا توجد حملة نشطة. أنشئ حملة أولاً.")); const b = el("button", "", "+ حملة جديدة"); b.type = "button"; b.onclick = () => openSheet("campaign_new"); sh.append(b); bg.append(sh); root.append(bg); return; }
+    if (F.hint) sh.append(el("p", "sub", F.hint));
+    const g = el("div", "fgrid"); const inputs = {};
+    const shows = [];
+    F.fields.forEach(([k, label, kind, opts, cfg]) => {
+      const l = el("label", "f", label); let i;
+      if (cfg && cfg.show) shows.push([l, cfg.show]);
+      if (kind === "select") { i = el("select"); opts().forEach(([v, t]) => { const o = el("option", "", t); o.value = v; i.append(o); }); }
+      else { i = el("input"); i.type = kind; if (kind === "number") { i.inputMode = "decimal"; i.min = "0"; i.step = "any"; } }
+      i.id = "f-" + type + "-" + k;
+      if (preset && preset[k] !== undefined && preset[k] !== null) i.value = preset[k];
+      else if (kind === "date") i.value = today();
+      l.append(i); g.append(l); inputs[k] = i;
+    });
+    sh.append(g);
+    const applyShow = () => { const v = {}; Object.keys(inputs).forEach((k) => (v[k] = inputs[k].value)); shows.forEach(([l, fn]) => (l.hidden = !fn(v))); };
+    Object.values(inputs).forEach((i) => { if (i.tagName === "SELECT") i.addEventListener("change", applyShow); });
+    applyShow();
+    const msg = el("p", "status", "");
+    const save = el("button", "", "احفظ"); save.type = "submit";
+    const r = el("div", "row"); r.append(save, msg); sh.append(r);
+    sh.onsubmit = (ev) => {
+      ev.preventDefault();
+      const o = { t: type };
+      F.fields.forEach(([k, , kind]) => { o[k] = kind === "number" ? (inputs[k].value === "" ? 0 : num(inputs[k].value)) : inputs[k].value; });
+      const e = finalize(o);
+      if (!e) { msg.textContent = "أكمل الحقول المهمة (المبلغ أو الاسم)."; return; }
+      if (preset && preset.id) e.id = preset.id;
+      commit([e]); root.replaceChildren(); if (onSave) onSave();
+    };
+    bg.onclick = (ev) => { if (ev.target === bg) root.replaceChildren(); };
+    bg.append(sh); root.append(bg);
+    const first = sh.querySelector("input, select"); if (first) first.focus();
+  }
+
+  // Normalize and validate one entry; returns null when unusable.
+  function finalize(o, refs) {
+    refs = refs || {};
+    const e = Object.assign({}, o);
+    const mapRef = (v) => (refs[v] || v);
+    if (e.product) e.product = mapRef(e.product);
+    if (e.campaign) e.campaign = mapRef(e.campaign);
+    if (!e.date || !/^\d{4}-\d{2}-\d{2}$/.test(e.date)) e.date = today();
+    e.ts = new Date().toISOString();
+    const pos = (k) => num(e[k]) > 0;
+    switch (e.t) {
+      case "expense": if (!pos("amount") || !CATS[e.cat]) return null; if (!ACCTS[e.acct]) e.acct = "cash"; if (e.product && !prodById(e.product)) delete e.product; if (!e.product) delete e.product; break;
+      case "income": if (!pos("amount")) return null; if (!ACCTS[e.acct]) e.acct = "cash"; break;
+      case "transfer": if (!pos("amount") || !ACCTS[e.from] || !ACCTS[e.to] || e.from === e.to) return null; if (!pos("amountTo")) delete e.amountTo; break;
+      case "stock": if (!prodById(e.product) || !pos("qty")) return null; if (!ACCTS[e.acct]) e.acct = "cash"; e.unitCost = num(e.unitCost) || num(prodById(e.product).cost); if (!LOCS[e.loc]) e.loc = "home"; break;
+      case "stock_move": if (!prodById(e.product) || !pos("qty") || !LOCS[e.from] || !LOCS[e.to] || e.from === e.to) return null; break;
+      case "ad": {
+        const c = campById(e.campaign); if (c) { if (c.type === "partner") delete e.product; else e.product = c.product; } else delete e.campaign;
+        if ((!c || c.type !== "partner") && !prodById(e.product)) return null;
+        if (!pos("usd")) return null; e.rate = rate(); e.orders = Math.max(0, Math.round(num(e.orders))); break;
+      }
+      case "p_results": {
+        const c = campById(e.campaign); if (!c || c.type !== "partner") return null; delete e.product;
+        ["orders", "delivered", "returned"].forEach((k) => (e[k] = Math.max(0, Math.round(num(e[k])))));
+        if (!e.orders && !e.delivered && !e.returned) return null; break;
+      }
+      case "partner_settle": { const c = campById(e.campaign); if (!c || c.type !== "partner" || !pos("amount")) return null; if (e.kind !== "out") e.kind = "in"; if (!ACCTS[e.acct]) e.acct = "cash"; break; }
+      case "results": {
+        const c = campById(e.campaign); if (c) e.product = c.product; else delete e.campaign;
+        const p = prodById(e.product); if (!p) return null;
+        ["orders", "delivered", "returned"].forEach((k) => (e[k] = Math.max(0, Math.round(num(e[k])))));
+        if (!e.orders && !e.delivered && !e.returned) return null;
+        e.v = 2; if (!LOCS[e.loc]) e.loc = "warehouse"; if (e.rtype !== "stuck") e.rtype = "direct";
+        e.fee = e.loc === "home" ? num(S.settings.returnFee) : 0;
+        e.pieces = Math.max(e.delivered, Math.round(num(e.pieces)) || e.delivered); e.discount = Math.max(0, num(e.discount));
+        if (num(e.actual) > 0) { e.recv = num(e.actual); e.actual = true; e.wf = 0; e.wh = 0; }
+        else { const x = expectedNet(p, e.delivered, e.pieces, e.discount, e.loc); e.recv = e.delivered ? x.net : 0; e.wf = e.delivered ? x.wf : 0; e.wh = e.delivered ? x.wh : 0; delete e.actual; }
+        e.unit = num(p.price); break;
+      }
+      case "ship": {
+        const c = campById(e.campaign); if (c) e.product = c.product; else delete e.campaign;
+        if (!prodById(e.product) || !pos("qty")) return null; if (!LOCS[e.from]) e.from = "warehouse";
+        e.qty = Math.round(num(e.qty)); e.colis = Math.round(num(e.colis)) || e.qty; e.orders = Math.max(0, Math.round(num(e.orders))); break;
+      }
+      case "retour_in": if (!prodById(e.product) || !pos("qty")) return null; if (!LOCS[e.to] && e.to !== "damaged") e.to = "home"; e.qty = Math.round(num(e.qty)); break;
+      case "debt": if (!pos("amount") || !String(e.person || "").trim()) return null; if (e.dir !== "me") e.dir = "they"; if (e.kind !== "pay") e.kind = "new"; if (!ACCTS[e.acct]) e.acct = "none"; break;
+      case "campaign_new":
+        if (!CTYPES[e.type]) e.type = "stock";
+        if (e.type === "partner") { delete e.product; if (!String(e.pname || "").trim() || !pos("sellPrice")) return null; e.share = num(e.share) || 50; if (!String(e.name || "").trim()) e.name = e.pname + " مع " + (e.partner || "شريك"); }
+        else { if (!prodById(e.product)) return null; if (!String(e.name || "").trim()) e.name = pname(e.product) + " " + e.date; }
+        break;
+      case "product_new": if (!String(e.name || "").trim()) return null; break;
+      case "asset_new": if (!String(e.name || "").trim() || !pos("value")) return null; break;
+      default: return null;
+    }
+    return e;
+  }
+
+  // campaign_new / product_new become documents in their own collections; everything else is an entry.
+  function commit(list) {
+    list.forEach((e) => {
+      if (e.t === "product_new") {
+        const p = { id: e.id || uid(), name: String(e.name).trim(), price: num(e.price), cost: num(e.cost), weight: num(e.weight), whFee: num(e.whFee) };
+        put("products", p);
+      } else if (e.t === "asset_new") {
+        put("assets", { id: e.id || uid(), name: String(e.name).trim(), value: num(e.value), where: String(e.where || "").trim(), date: e.date });
+      } else if (e.t === "campaign_new") {
+        const c = { id: e.id || uid(), type: e.type || "stock", name: String(e.name).trim(), budgetUsd: num(e.budgetUsd), start: e.date, status: "active" };
+        if (c.type === "partner") Object.assign(c, { partner: String(e.partner || "").trim(), pname: String(e.pname || "").trim(), sellPrice: num(e.sellPrice), buyPrice: num(e.buyPrice), share: num(e.share) || 50 });
+        else c.product = e.product;
+        if (e.id) { const old = campById(e.id); if (old) c.status = old.status; }
+        put("campaigns", c);
+      } else {
+        put("entries", e);
+      }
+    });
+  }
+
+  // ---------------- smart input ----------------
+  const EXAMPLES = ["فليكسي 200", "وكلت 450 كاش", "اشتريت 30 دولار بـ 7500 من CCP", "صرفت 10$ على الحملة", "تسلمت 4 ورجعت 1", "خالد سلّفته 2000"];
+  let pendingParsed = null, refsMap = {}, ctl = null;
+  function renderSmartAvail() {
+    const ok = !!sample;
+    $("smartGo").disabled = !ok; $("smartText").disabled = !ok;
+    $("smartMsg").textContent = ok ? "" : "الكتابة الذكية غير متاحة هنا. اختر ما حدث من الأزرار.";
+  }
+  function buildPrompt(text) {
+    const prods = S.products.map((p) => ({ id: p.id, name: p.name, price: p.price }));
+    const camps = S.campaigns.filter((c) => c.status !== "stopped").map((c) => ({ id: c.id, name: c.name, product: c.product }));
+    return [
+      "أنت محاسب لشخص جزائري يدير متجراً بالدفع عند الاستلام. حوّل رسالته إلى عمليات JSON. يكتب بالعربية أو الدارجة أو الفرنسية أو الإنجليزية.",
+      "اليوم: " + today() + ". العملة: دينار جزائري. Bybit بالدولار (USDT). سعر الدولار الحالي تقريباً: " + (Math.round(rate()) || "غير معروف") + " دج.",
+      "الحسابات acct: cash=الكاش في الجيب (مصروف الأكل)، stash=مخبأ البيت أو المال المخبأ المدخر، ccp=CCP أو بريدي موب، delivery=المال عند شركة التوصيل، bybit=USDT في Bybit.",
+      "فئات المصاريف cat: food أكل، transport نقل، bills فواتير، flexy فليكسي أو رصيد الهاتف، living_other معيشة أخرى، shipping Yassir أو نقل الطرود، packaging تغليف، store_other مصاريف متجر أخرى.",
+      "المنتجات: " + JSON.stringify(prods),
+      "الحملات النشطة: " + JSON.stringify(camps),
+      "أنواع العمليات t:",
+      '- expense {amount, cat, acct, note?, product?}',
+      '- income {amount, acct, note?}',
+      '- transfer {from, to, amount, amountTo?}  شراء دولار: from=ccp أو cash، to=bybit، amount بالدينار، amountTo بالدولار. استلام مال من شركة التوصيل: from=delivery.',
+      '- stock {product, qty, unitCost, acct, loc}  شراء سلعة. loc: home=البيت، warehouse=مخزن شركة التوصيل (الافتراضي home)',
+      '- stock_move {product, qty, from, to}  نقل سلعة بين home و warehouse',
+      '- ship {product, campaign?, from, qty, colis?, orders?}  أرسل طرود للتوصيل (أكّد طلبيات وخرجت السلعة). from: home أو warehouse',
+      '- retour_in {product, qty, to}  وصلته السلعة المرتجعة فعلاً. to: home أو warehouse أو damaged',
+      '- ad {campaign, usd, orders?}  صرف إعلانات بالدولار، orders عدد الطلبيات من مدير الإعلانات',
+      '- p_results {campaign, orders, delivered, returned}  نتائج حملة شراكة (الشريك يشتري ويوصّل)',
+      '- partner_settle {campaign, kind, amount, acct}  تسوية مع الشريك: kind=in استلمت منه، out دفعت له',
+      '- results {campaign?, product, orders, delivered, pieces?, discount?, returned, loc, actual?}  delivered طرود تسلّمها الزبون، pieces عدد القطع إن أخذ زبون أكثر من قطعة، discount مجموع التخفيضات بالدينار، returned مرتجعة، rtype: direct إن رجعت مباشرة أو stuck إن بقيت عالقة عند شركة التوصيل، loc من أين خرجت السلعة (الافتراضي warehouse)، actual المبلغ الصافي إن ذكره من كشف شركة التوصيل',
+      '- debt {person, dir, kind, amount, acct}  dir="they" هو مدين لي، dir="me" أنا مدين له. kind="new" دين جديد، kind="pay" تسديد. acct="none" إن لم يتحرك مال.',
+      '- campaign_new {type, product?, name, budgetUsd?, partner?, pname?, sellPrice?, buyPrice?, share?}  type: stock بيع من الستوك، home بيع منتج البيت، test تست، partner شراكة (لا product؛ pname اسم المنتج، sellPrice و buyPrice، share نصيبي %)',
+      '- asset_new {name, value, where}  شيء له قيمة يملكه (ذهب، هاتف...)',
+      '- product_new {name, price, cost, weight?, whFee?}  price سعر البيع للقطعة، weight الوزن بالكغ، whFee رسوم المخزن لكل طرد',
+      "قواعد: كل عملية فيها date بصيغة YYYY-MM-DD (اليوم إن لم يُذكر). إن لم يذكر الحساب في مصروف صغير فاستعمل cash. product و campaign يجب أن يكونا id من القوائم. إن كانت هناك حملة نشطة واحدة لنفس المنتج فضع campaign. إن ذكر منتجاً غير موجود فأضف product_new مع \"ref\":\"p1\" واستعمل \"p1\" مكان id. وبنفس الطريقة campaign_new مع \"ref\":\"c1\". لا تخترع أرقاماً غير موجودة في الرسالة.",
+      "إن كان شيء مهم ناقصاً (المبلغ مثلاً) فلا تخمّن: ضع سؤالاً قصيراً بالعربية في question.",
+      'أجب فقط بـ JSON بهذا الشكل: {"entries":[{"t":"expense","amount":200,"cat":"flexy","acct":"cash","date":"' + today() + '"}],"question":null}',
+      "الرسالة:",
+      '"""' + text.slice(0, 2000) + '"""'
+    ].join("\n");
+  }
+  async function smartGo() {
+    const text = $("smartText").value.trim(); if (!text || !sample) return;
+    $("smartGo").disabled = true; $("smartMsg").textContent = "أفكّر…"; $("smartOut").replaceChildren();
+    ctl = new AbortController();
+    try {
+      const res = await sample.json(buildPrompt(text), { modelTier: "quick", signal: ctl.signal, cache: false });
+      const raw = Array.isArray(res && res.entries) ? res.entries : [];
+      // Map refs for new products/campaigns to real ids before validating dependent entries.
+      refsMap = {}; const out = [];
+      raw.forEach((r) => { if (r && (r.t === "product_new" || r.t === "campaign_new") && r.ref) { refsMap[r.ref] = uid(); } });
+      const tmpProducts = [], tmpCamps = [];
+      raw.forEach((r) => {
+        if (!r || typeof r !== "object") return;
+        if (r.t === "product_new") { const id = refsMap[r.ref] || uid(); const e = finalize(Object.assign({}, r)); if (e) { e.id = id; delete e.ref; out.push(e); tmpProducts.push({ id, name: e.name, price: num(e.price), cost: num(e.cost), weight: num(e.weight), whFee: num(e.whFee) }); } }
+      });
+      S.products.push(...tmpProducts);
+      raw.forEach((r) => {
+        if (!r || r.t !== "campaign_new") return;
+        const id = refsMap[r.ref] || uid(); const e = finalize(Object.assign({}, r), refsMap);
+        if (e) { e.id = id; delete e.ref; out.push(e); tmpCamps.push({ id, product: e.product, name: e.name, status: "active" }); }
+      });
+      S.campaigns.push(...tmpCamps);
+      let dropped = 0;
+      raw.forEach((r) => {
+        if (!r || r.t === "product_new" || r.t === "campaign_new") return;
+        const e = finalize(Object.assign({}, r), refsMap); if (e) { delete e.ref; out.push(e); } else dropped++;
+      });
+      S.products = S.products.filter((p) => !tmpProducts.includes(p));
+      S.campaigns = S.campaigns.filter((c) => !tmpCamps.includes(c));
+      pendingParsed = out;
+      renderPreview(out, res && res.question, dropped);
+      $("smartMsg").textContent = "";
+    } catch (e) {
+      const c = e && e.code;
+      $("smartMsg").textContent = c === "not_granted" || c === "sampling_disabled" ? "لم يُسمح باستعمال Claude هنا. اختر ما حدث من الأزرار."
+        : c === "rate_limited" ? "طلبات كثيرة. انتظر قليلاً ثم حاول." : c === "cancelled" ? "" : "لم أفهم. أعد الصياغة أو اختر ما حدث من الأزرار.";
+      if (c === "not_granted" || c === "sampling_disabled") { sample = null; renderSmartAvail(); }
+    } finally { if (sample) $("smartGo").disabled = false; }
+  }
+  function renderPreview(list, question, dropped) {
+    const box = $("smartOut"); box.replaceChildren();
+    const c = el("div", "stack preview");
+    if (question) c.append(el("p", "pill warn", question));
+    if (!list.length) { c.append(el("p", "empty", "لم أجد عملية واضحة. أضف المبلغ أو التفاصيل.")); box.append(c); return; }
+    c.append(el("h3", "", "سأسجّل هذا:"));
+    const l = el("div", "list");
+    list.forEach((e, i) => l.append(liRow(e, () => { pendingParsed.splice(i, 1); renderPreview(pendingParsed, question, dropped); })));
+    c.append(l);
+    if (dropped) c.append(el("p", "sub", dropped + " عملية لم تكتمل فتركتها. أضفها من الأزرار."));
+    const r = el("div", "row");
+    const ok = el("button", "", "صحيح، احفظ"); ok.type = "button";
+    ok.onclick = () => { commit(pendingParsed); pendingParsed = null; box.replaceChildren(); $("smartText").value = ""; $("smartMsg").textContent = "تم الحفظ."; };
+    const no = el("button", "plain", "إلغاء"); no.type = "button"; no.onclick = () => { pendingParsed = null; box.replaceChildren(); };
+    r.append(ok, no); c.append(r); box.append(c);
+  }
+
+  // ---------------- views ----------------
+  function renderWeek() {
+    const box = $("weekCard"); box.replaceChildren();
+    const ws = weekStart(today()); const td = today();
+    const living = S.entries.filter((e) => e.t === "expense" && CATS[e.cat] && CATS[e.cat].living && e.date >= ws && e.date <= td);
+    const spent = living.reduce((a, e) => a + num(e.amount), 0);
+    const budget = num(S.settings.weekly); const left = budget - spent;
+    const daysGone = Math.round((new Date(td + "T12:00:00") - new Date(ws + "T12:00:00")) / 864e5);
+    const daysLeft = 7 - daysGone;
+    const todaySpent = living.filter((e) => e.date === td).reduce((a, e) => a + num(e.amount), 0);
+    const head = el("div", "row between"); head.append(el("h2", "", "مصروف الأسبوع"), el("span", "sub", "من السبت " + ws));
+    const big = el("div", "big", fmt(left)); big.style.color = left < 0 ? "var(--bad)" : "var(--fg)";
+    const lbl = el("p", "sub", left >= 0 ? "باقي لك هذا الأسبوع من " + fmt(budget) : "تجاوزت مصروف الأسبوع بـ " + fmt(-left));
+    const bar = el("div", "bar" + (left < 0 ? " over" : "")); const fill = el("i"); fill.style.width = Math.min(100, budget > 0 ? (spent / budget) * 100 : 0) + "%"; bar.append(fill);
+    const per = el("p", "", left > 0 ? "يعني حوالي " + fmt(left / daysLeft) + " في اليوم لـ " + daysLeft + " أيام. صرفت اليوم " + fmt(todaySpent) + "." : "حاول ألا تصرف شيئاً غير ضروري حتى السبت.");
+    const chips = el("div", "chips");
+    Object.keys(CATS).filter((k) => CATS[k].living).forEach((k) => {
+      const v = living.filter((e) => e.cat === k).reduce((a, e) => a + num(e.amount), 0);
+      if (v) chips.append(el("span", "chip", CATS[k].n + " " + Math.round(v).toLocaleString("en-US")));
+    });
+    box.append(head, big, lbl, bar, per); if (chips.childNodes.length) box.append(chips);
+  }
+
+  function renderCheckin() {
+    const box = $("checkin"); box.replaceChildren();
+    const td = today();
+    const done = (k) => { try { return localStorage.getItem("q-" + k) === td; } catch (e) { return false; } };
+    const mark = (k) => { try { localStorage.setItem("q-" + k, td); } catch (e) {} renderCheckin(); };
+    const has = (fn) => S.entries.some((e) => e.date === td && fn(e));
+    let retour = 0, oldest = 0; S.products.forEach((p) => { const ps = productStats(p); retour += Math.max(0, ps.st.retour); oldest = Math.max(oldest, ps.stuckDays || 0); });
+    const active = S.campaigns.filter((c) => c.status !== "stopped");
+    const qs = [
+      ["spent", "هل صرفت مالاً اليوم؟", () => has((e) => e.t === "expense"), () => { $("smartText").focus(); }],
+      ["camp", "هل أطلقت حملة جديدة اليوم؟", () => S.campaigns.some((c) => c.start === td), () => openSheet("campaign_new")],
+      ["ads", "هل صرفت على الإعلانات اليوم؟", () => !active.length || has((e) => e.t === "ad"), () => openSheet("ad")],
+      ["ship", "هل أرسلت طرود اليوم؟", () => !S.products.length || has((e) => e.t === "ship"), () => openSheet("ship")],
+      ["res", "هل وصلك خبر تسليم أو مرتجع؟", () => !S.products.length || has((e) => e.t === "results"), () => openSheet("results")],
+      ["ret", "عندك " + Math.round(retour) + " قطعة مرتجعة عالقة عند شركة التوصيل (أقدمها منذ " + oldest + " يوم). هل وصلك شيء منها؟", () => retour <= 0, () => openSheet("retour_in")],
+      ["cash", "هل استلمت مالاً من شركة التوصيل؟", () => !S.products.length || has((e) => e.t === "transfer" && e.from === "delivery"), () => openSheet("transfer", { from: "delivery", to: "ccp" })]
+    ].filter(([k, , answered]) => !done(k) && !answered());
+    if (!qs.length) { box.append(el("h2", "", "أسئلة اليوم"), el("p", "empty", "أجبت عن كل شيء اليوم.")); return; }
+    box.append(el("h2", "", "أسئلة اليوم"));
+    qs.forEach(([k, q, , yes]) => {
+      const r = el("div", "li"); r.append(el("span", "t", q));
+      const btns = el("div", "row");
+      const y = el("button", "", "نعم"); y.type = "button"; y.onclick = yes;
+      const n = el("button", "plain", "لا"); n.type = "button"; n.onclick = () => mark(k);
+      btns.append(y, n); r.append(btns); box.append(r);
+    });
+  }
+
+  function renderToday() {
+    renderWeek(); renderWealthMini(); renderCheckin();
+    $("todayDate").textContent = today();
+    const l = $("todayList"); l.replaceChildren();
+    const es = S.entries.filter((e) => e.date === today()).sort((a, b) => (b.ts || "").localeCompare(a.ts || ""));
+    if (!es.length) l.append(el("p", "empty", "لا شيء مسجّل اليوم بعد. اكتب أول مصروف في الأعلى."));
+    es.forEach((e) => l.append(liRow(e, () => del("entries", e.id))));
+  }
+
+  function tile(label, value, cls) { const t = el("div", "tile"); t.append(el("span", "l", label)); const v = el("span", "v", value); if (cls) v.style.color = "var(--" + cls + ")"; t.append(v); return t; }
+
+  function flowMap(p, s) {
+    const box = (cls, label, n) => { const b = el("div", "fbox " + cls); b.append(el("span", "", label), el("b", "", String(Math.round(n)))); return b; };
+    const act = (label, form, preset) => { const b = el("button", "", label); b.type = "button"; b.onclick = () => openSheet(form, Object.assign({ product: p.id }, preset || {})); return b; };
+    const wrap = el("div", "flow");
+    wrap.append(el("div", "farrow")); wrap.lastChild.append(act("＋ شراء سلعة", "stock"));
+    const r1 = el("div", "frow"); r1.append(box("", "البيت", s.st.home), act("⇄ نقل", "stock_move"), box("", "المخزن", s.st.warehouse)); wrap.append(r1);
+    const a1 = el("div", "farrow"); a1.append(act("↓ أرسلت طرود", "ship")); wrap.append(a1);
+    const r2 = el("div", "frow"); r2.style.gridTemplateColumns = "1fr"; r2.append(box("", "في التوصيل", s.st.transit)); wrap.append(r2);
+    const a2 = el("div", "farrow"); a2.append(act("↓ نتيجة التوصيل", "results")); wrap.append(a2);
+    const r3 = el("div", "frow"); r3.append(box("sold", "مُباعة", s.st.sold), el("span"), box("ret", "مرتجعة عالقة", s.st.retour)); wrap.append(r3);
+    if (s.st.retour > 0) wrap.append(el("p", "pill warn", "أقدم مرتجع عالق منذ " + s.stuckDays + " يوم (" + s.stuck[0].date + ")"));
+    if (s.st.retour > 0) { const a3 = el("div", "farrow"); a3.append(act("↑ وصلني المرتجع", "retour_in", { qty: Math.round(s.st.retour) })); wrap.append(a3); }
+    if (s.st.damaged > 0) wrap.append(el("p", "sub", "تالفة أو ضائعة: " + Math.round(s.st.damaged)));
+    return wrap;
+  }
+
+  function renderStore() {
+    const tiles = $("storeTiles"); tiles.replaceChildren();
+    const month = today().slice(0, 7);
+    const ms = stats((e) => (e.date || "").slice(0, 7) === month && (e.t === "ad" || e.t === "results" || (e.t === "expense" && CATS[e.cat] && !CATS[e.cat].living)));
+    // cogs needs per-product cost: sum per product for this month
+    let cogs = 0; S.products.forEach((p) => { const s = stats((e) => e.product === p.id && (e.date || "").slice(0, 7) === month, p); cogs += s.cogs; });
+    const monthProfit = ms.revenue - cogs - ms.adDzd - ms.returnCost - ms.extra;
+    let stockVal = 0; S.products.forEach((p) => (stockVal += productStats(p).stockValue));
+    tiles.append(tile("ربح المتجر هذا الشهر", fmt(monthProfit), monthProfit >= 0 ? "good" : "bad"), tile("إعلانات هذا الشهر", usd(ms.adUsd)), tile("قيمة الستوك", fmt(stockVal)), tile("سعر الدولار", rate() ? Math.round(rate()) + " دج" : "—"));
+
+    const cat = $("catalog"); cat.replaceChildren();
+    if (!S.products.length) cat.append(el("p", "empty", "لا توجد منتجات بعد. أضف منتجك الرئيسي بزر \"+ منتج\"."));
+    S.products.forEach((p) => {
+      const s = productStats(p); const v = verdict(s, s.adUsd > 0 || s.orders > 0 || s.delivered > 0);
+      const c = el("div", "card");
+      const h = el("div", "row between"); h.append(el("h3", "", p.name), el("span", "pill " + v.c, v.t)); c.append(h);
+      c.append(flowMap(p, s));
+      const dl = el("dl", "kv");
+      const rows = [
+        ["كل الستوك (غير المُباع)", Math.round(s.stock) + " قطعة"], ["قيمة الستوك", fmt(s.stockValue)],
+        ["سعر البيع", fmt(num(p.price))], ["تكلفة القطعة", fmt(s.avgCost)], ["الوزن · رسوم المخزن", (num(p.weight) || 0) + " كغ · " + fmt(num(p.whFee))],
+        ["الهامش لكل قطعة", fmt(s.maxAd)], ["نقطة التعادل للإعلان", beUsd(s.maxAd) !== null ? usd(beUsd(s.maxAd)) + " لكل طلبية" : "–"],
+        ["الإعلانات", usd(s.adUsd) + " ≈ " + fmt(s.adDzd)],
+        ["طرود مُسلَّمة / مرتجعة", s.delivered + " / " + s.returned + (s.rateD !== null ? " (" + Math.round(s.rateD * 100) + "% تسليم)" : "")],
+        ["تكلفة الإعلان لكل مُسلَّمة", s.cpd !== null ? fmt(s.cpd) : "–"],
+        ["الصافي من شركة التوصيل", fmt(s.revenue)], ["الحملات", String(s.camps)],
+        ["الربح أو الخسارة", fmt(s.profit), true]
+      ];
+      rows.forEach(([k, val, tot]) => { const dt = el("dt", tot ? "tot" : "", k); const dd = el("dd", tot ? "tot" : "", val); dl.append(dt, dd); });
+      c.append(dl);
+      if (s.stock <= 3 && s.bought > 0) c.append(el("p", "pill warn", "الستوك قليل: " + Math.round(s.stock) + " قطعة"));
+      else if (s.loc.warehouse <= 2 && s.loc.home > 0) c.append(el("p", "pill warn", "المخزن شبه فارغ وعندك " + Math.round(s.loc.home) + " في البيت. انقل سلعة للمخزن."));
+      const r = el("div", "row");
+      [["حملة", "campaign_new"]].forEach(([t, f]) => { const b = el("button", "plain", t); b.type = "button"; b.onclick = () => openSheet(f, { product: p.id }); r.append(b); });
+      const ed = el("button", "ghost", "تعديل"); ed.type = "button"; ed.onclick = () => openSheet("product_new", { id: p.id, name: p.name, price: p.price, cost: p.cost, weight: p.weight, whFee: p.whFee }); r.append(ed);
+      c.append(r);
+      cat.append(c);
+    });
+  }
+
+  // Break-even ad cost per order in USD: (margin / factor) / rate.
+  function beUsd(margin) { const r = rate(); const f = num(S.settings.beFactor) || 1.5; return r > 0 && margin > 0 ? margin / f / r : null; }
+  function campStats(cp) {
+    const p = prodById(cp.product);
+    const s = stats((e) => e.campaign === cp.id, p);
+    s.partner = cp.type === "partner";
+    s.margin = s.partner ? num(cp.sellPrice) - num(cp.buyPrice) : s.maxAd;
+    s.be = beUsd(s.margin);
+    s.cpo = s.orders > 0 ? s.adUsd / s.orders : (s.delivered > 0 ? s.adUsd / s.delivered : null);
+    if (s.partner) {
+      s.total = s.delivered * s.margin - s.adDzd;
+      s.mine = (num(cp.share) / 100) * s.total;
+      s.friendOwes = s.adDzd + s.mine - (s.settled || 0);
+      s.profit = s.mine;
+    }
+    let v;
+    if (!s.adUsd && !s.orders) v = { c: "none", t: "لا توجد أرقام بعد" };
+    else if (s.margin <= 0) v = { c: "bad", t: "لا هامش: يخسر حتى قبل الإعلانات" };
+    else if (s.cpo === null) v = { c: "warn", t: "صرفت ولا طلبيات بعد" };
+    else if (s.be === null) v = { c: "none", t: "حدّد سعر الدولار" };
+    else if (s.cpo <= s.be) v = { c: "good", t: "تحت نقطة التعادل: تربح" };
+    else if (s.cpo <= s.be * (num(S.settings.beFactor) || 1.5)) v = { c: "warn", t: "فوق نقطة التعادل: تسترجع رأس المال فقط" };
+    else v = { c: "bad", t: "تخسر: أوقفها أو غيّر شيئاً" };
+    s.v = v;
+    return s;
+  }
+
+  function renderCamps() {
+    const box = $("campList"); box.replaceChildren();
+    box.append(el("p", "sub", "نقطة التعادل = (سعر البيع − سعر الشراء) ÷ " + (num(S.settings.beFactor) || 1.5) + " ÷ سعر الدولار (" + Math.round(rate()) + " دج). إذا كانت تكلفة الطلبية تحتها فأنت تربح، وإذا كانت فوقها فأنت تسترجع رأس مالك فقط."));
+    if (!S.campaigns.length) { box.append(el("p", "empty", "لا توجد حملات بعد. عندما تطلق حملة، أضفها هنا لتعرف إن كانت تربح.")); return; }
+    const sorted = [...S.campaigns].sort((a, b) => ((a.status === "stopped") - (b.status === "stopped")) || (b.start || "").localeCompare(a.start || ""));
+    sorted.forEach((cp) => {
+      const s = campStats(cp); const partner = s.partner;
+      const c = el("div", "card");
+      const h = el("div", "row between");
+      const t = el("div", "d"); t.style.display = "grid";
+      t.append(el("h3", "", cp.name), el("span", "sub", (CTYPES[cp.type] || CTYPES.stock) + " · " + (partner ? (cp.pname || "") + (cp.partner ? " مع " + cp.partner : "") : pname(cp.product)) + " · من " + (cp.start || "") + (cp.status === "stopped" ? " · متوقفة" : "")));
+      h.append(t, el("span", "pill " + s.v.c, s.v.t)); c.append(h);
+      const be = el("div", "tiles");
+      be.append(tile("نقطة التعادل", s.be !== null ? usd(s.be) : "–"), tile("تكلفة الطلبية الآن", s.cpo !== null ? usd(s.cpo) : "–", s.cpo !== null && s.be !== null ? (s.cpo <= s.be ? "good" : "bad") : ""));
+      c.append(be);
+      if (num(cp.budgetUsd) > 0) {
+        const bar = el("div", "bar" + (s.adUsd > num(cp.budgetUsd) ? " over" : "")); const f = el("i"); f.style.width = Math.min(100, (s.adUsd / num(cp.budgetUsd)) * 100) + "%"; bar.append(f);
+        c.append(el("p", "sub", "صرفت " + usd(s.adUsd) + " من ميزانية " + usd(num(cp.budgetUsd))), bar);
+        if (s.adUsd >= num(cp.budgetUsd) && s.v.c === "bad") c.append(el("p", "pill bad", "انتهت ميزانية التجربة وما زالت تخسر. القاعدة: أوقفها."));
+      }
+      const dl = el("dl", "kv");
+      const rows = [["الهامش لكل قطعة", fmt(s.margin) + (partner ? " (" + fmt(num(cp.sellPrice)) + " − " + fmt(num(cp.buyPrice)) + ")" : "")],
+        ["الإعلانات", usd(s.adUsd) + " ≈ " + fmt(s.adDzd)], ["طلبيات · مُسلَّمة · مرتجعة", s.orders + " · " + s.delivered + " · " + s.returned]];
+      if (partner) rows.push(["ربح الحملة كلها", fmt(s.total)], ["نصيبي (" + num(cp.share) + "%)", fmt(s.mine)], ["استلمت من الشريك", fmt(s.settled || 0)], [s.friendOwes >= 0 ? "الشريك مدين لي (إعلاناتي + نصيبي)" : "أنا مدين للشريك", fmt(Math.abs(s.friendOwes)), true]);
+      else rows.push(["الربح أو الخسارة", fmt(s.profit), true]);
+      rows.forEach(([k, val, tot]) => dl.append(el("dt", tot ? "tot" : "", k), el("dd", tot ? "tot" : "", val)));
+      c.append(dl);
+      const r = el("div", "row");
+      const btn = (label, cls, fn) => { const b = el("button", cls, label); b.type = "button"; b.onclick = fn; r.append(b); };
+      if (cp.status !== "stopped") {
+        btn("إعلانات", "plain", () => openSheet("ad", { campaign: cp.id }));
+        btn("نتائج", "plain", () => partner ? openSheet("p_results", { campaign: cp.id }) : openSheet("results", { campaign: cp.id, product: cp.product }));
+      }
+      if (partner) btn("تسوية", "plain", () => openSheet("partner_settle", { campaign: cp.id, amount: Math.round(Math.max(0, s.friendOwes)) }));
+      btn("تعديل", "ghost", () => openSheet("campaign_new", Object.assign({}, cp, { date: cp.start })));
+      btn(cp.status === "stopped" ? "أعد تشغيلها" : "أوقف الحملة", "ghost", () => put("campaigns", Object.assign({}, cp, { status: cp.status === "stopped" ? "active" : "stopped" })));
+      c.append(r);
+      box.append(c);
+    });
+  }
+
+  function withEntries(list, fn) { const old = S.entries; S.entries = list; try { return fn(); } finally { S.entries = old; } }
+  function wealth() {
+    const { b, owedToMe, iOwe } = balances(); const r = rate();
+    const money = Object.keys(ACCTS).map((k) => ({ k, n: ACCTS[k].n, cur: ACCTS[k].cur, raw: b[k], dzd: ACCTS[k].cur === "USD" ? b[k] * r : b[k] }));
+    const stock = S.products.map((p) => { const s = productStats(p); return { p, s, dzd: s.stockValue }; }).filter((x) => x.s.stock > 0);
+    const owed = Object.keys(owedToMe).filter((x) => owedToMe[x] > 0.5).map((x) => ({ n: x, dzd: owedToMe[x] }));
+    const owe = Object.keys(iOwe).filter((x) => iOwe[x] > 0.5).map((x) => ({ n: x, dzd: iOwe[x] }));
+    S.campaigns.filter((c) => c.type === "partner").forEach((c) => {
+      const cs = campStats(c); const who = (c.partner || "الشريك") + " (" + c.name + ")";
+      if (cs.friendOwes > 0.5) owed.push({ n: who, dzd: cs.friendOwes }); else if (cs.friendOwes < -0.5) owe.push({ n: who, dzd: -cs.friendOwes });
+    });
+    const assets = S.assets.map((a) => ({ a, dzd: num(a.value) }));
+    const sum = (arr) => arr.reduce((t, x) => t + x.dzd, 0);
+    const g = { money: sum(money), stock: sum(stock), owed: sum(owed), assets: sum(assets), owe: sum(owe) };
+    return { money, stock, owed, owe, assets, g, total: g.money + g.stock + g.owed + g.assets - g.owe, rateOk: r > 0 };
+  }
+  function wealthAt(date) { return withEntries(S.entries.filter((e) => (e.date || "") <= date), () => wealth().total); }
+
+  function renderWealthMini() {
+    const box = $("wealthMini"); box.replaceChildren();
+    const w = wealth(); const ws = weekStart(today());
+    const prev = new Date(ws + "T12:00:00"); prev.setDate(prev.getDate() - 1);
+    const before = wealthAt(prev.toLocaleDateString("en-CA")); const diff = w.total - before;
+    const head = el("div", "row between"); head.append(el("h2", "", "ثروتك"), el("span", "sub", "التفاصيل ←"));
+    const big = el("div", "big", fmt(w.total));
+    const ch = el("p", "", (diff >= 0 ? "زادت " : "نقصت ") + fmt(Math.abs(diff)) + " منذ السبت");
+    ch.style.color = diff >= 0 ? "var(--good)" : "var(--bad)";
+    box.append(head, big, ch, shareBar(w));
+  }
+  function shareBar(w) {
+    const wrap = el("div", "stack"); wrap.style.gap = "6px";
+    const parts = [["money", "مال", w.g.money], ["stock", "سلعة", w.g.stock], ["owed", "ديون لك", w.g.owed], ["assets", "أشياء أخرى", w.g.assets]].filter((x) => x[2] > 0);
+    const tot = parts.reduce((t, x) => t + x[2], 0);
+    if (!tot) return wrap;
+    const bar = el("div", "share");
+    parts.forEach(([k, , v]) => { const i = el("i", "g-" + k); i.style.width = (v / tot) * 100 + "%"; i.style.background = "var(--c)"; bar.append(i); });
+    const lg = el("div", "legend");
+    parts.forEach(([k, n, v]) => lg.append(el("span", "g-" + k, n + " " + Math.round((v / tot) * 100) + "%")));
+    wrap.append(bar, lg); return wrap;
+  }
+  function renderWealth() {
+    const box = $("netCard"); box.replaceChildren();
+    const w = wealth();
+    box.append(el("h2", "", "ثروتك: كل ما تملكه وأين هو"), el("div", "big", fmt(w.total)), shareBar(w));
+    if (!w.rateOk) box.append(el("p", "pill warn", "حدّد سعر الدولار في الإعدادات ليُحسب Bybit بالدينار."));
+    const group = (cls, title, total, rows, sign) => {
+      const h = el("div", "ghead " + cls); const t = el("h3", "legend"); t.style.color = "var(--fg)"; t.append(el("span", cls, title)); h.append(t, el("span", "a", (sign || "") + fmt(total))); box.append(h);
+      const l = el("div", "list"); rows.forEach((r) => l.append(r)); if (!rows.length) l.append(el("p", "empty", "لا شيء.")); box.append(l);
+    };
+    const row = (t, m, a, extra) => { const r = el("div", "li"); const d = el("div", "d"); d.append(el("span", "t", t)); if (m) d.append(el("span", "m", m)); r.append(d); const right = el("div", "row"); right.append(el("span", "a", a)); if (extra) right.append(extra); r.append(right); return r; };
+    group("g-money", "مال", w.g.money, w.money.filter((x) => Math.abs(x.raw) > 0.005).map((x) => row(x.n, x.cur === "USD" ? usd(x.raw) + (w.rateOk ? " × " + Math.round(rate()) + " دج" : "") : (x.k === "delivery" ? "طلبيات مُسلَّمة لم تُحوَّل لك بعد" : ""), fmt(x.dzd))));
+    group("g-stock", "سلعة (بسعر الشراء)", w.g.stock, w.stock.map((x) => {
+      const r = el("div", "li"); r.style.display = "grid"; r.style.gap = "4px";
+      const top = el("div", "row between"); top.append(el("span", "t", x.p.name), el("span", "a", fmt(x.dzd)));
+      const where = [x.s.loc.home > 0 ? "البيت " + Math.round(x.s.loc.home) : "", x.s.loc.warehouse > 0 ? "المخزن " + Math.round(x.s.loc.warehouse) : ""].filter(Boolean).join(" · ");
+      r.append(top, el("span", "m", Math.round(x.s.stock) + " قطعة × " + fmt(x.s.avgCost) + (where ? " · " + where : "")));
+      const buys = S.entries.filter((e) => e.t === "stock" && e.product === x.p.id).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+      if (buys.length) {
+        const det = el("details"); det.append(el("summary", "", "متى اشتريتها"));
+        buys.forEach((e) => det.append(el("p", "m", e.date + " · " + num(e.qty) + " قطعة × " + fmt(num(e.unitCost)) + " · " + (LOCS[e.loc] || LOCS.home))));
+        r.append(det);
+      }
+      return r;
+    }));
+    group("g-owed", "ديون لك عند الناس", w.g.owed, w.owed.map((x) => row(x.n, "", fmt(x.dzd))));
+    group("g-assets", "أشياء أخرى لها قيمة", w.g.assets, w.assets.map((x) => {
+      const ed = el("button", "x", "✎"); ed.type = "button"; ed.setAttribute("aria-label", "تعديل " + x.a.name); ed.onclick = () => openSheet("asset_new", x.a);
+      const dl = el("button", "x", "×"); dl.type = "button"; dl.setAttribute("aria-label", "احذف " + x.a.name);
+      dl.onclick = () => { if (dl.dataset.c) del("assets", x.a.id); else { dl.dataset.c = "1"; dl.textContent = "حذف؟"; dl.style.fontSize = "0.8rem"; } };
+      const f = document.createDocumentFragment(); f.append(ed, dl);
+      return row(x.a.name, [x.a.where, x.a.date ? "منذ " + x.a.date : ""].filter(Boolean).join(" · "), fmt(x.dzd), f);
+    }));
+    const add = el("button", "ghost", "+ شيء له قيمة"); add.type = "button"; add.onclick = () => openSheet("asset_new"); box.append(add);
+    if (w.owe.length) group("", "ناقص: ديون عليك", w.g.owe, w.owe.map((x) => row(x.n, "", fmt(x.dzd))), "−");
+  }
+
+  function renderMoney() {
+    const { b, owedToMe, iOwe } = balances(); const r = rate();
+    renderWealth();
+
+    const al = $("acctList"); al.replaceChildren();
+    Object.keys(ACCTS).forEach((k) => {
+      const row = el("div", "li"); const d = el("div", "d"); d.append(el("span", "t", ACCTS[k].n));
+      if (k === "bybit" && r) d.append(el("span", "m", "≈ " + fmt(b[k] * r)));
+      if (k === "delivery") d.append(el("span", "m", "مال الطلبيات المُسلَّمة الذي لم يصلك بعد"));
+      const a = el("span", "a", ACCTS[k].cur === "USD" ? usd(b[k]) : fmt(b[k])); if (b[k] < 0) a.style.color = "var(--bad)";
+      row.append(d, a); al.append(row);
+    });
+    const tr = el("div", "row"); tr.style.paddingTop = "8px";
+    const t1 = el("button", "plain", "تحويل / شراء دولار"); t1.type = "button"; t1.onclick = () => openSheet("transfer");
+    const t2 = el("button", "plain", "استلمت من شركة التوصيل"); t2.type = "button"; t2.onclick = () => openSheet("transfer", { from: "delivery", to: "ccp" });
+    tr.append(t1, t2); al.append(tr);
+
+    const db_ = $("debtBox"); db_.replaceChildren();
+    const sec = (title, obj, dir) => {
+      const w = el("div", "stack"); w.append(el("h3", "", title));
+      const names = Object.keys(obj).filter((p) => Math.abs(obj[p]) > 0.5);
+      if (!names.length) w.append(el("p", "empty", "لا شيء."));
+      const l = el("div", "list");
+      names.forEach((p) => {
+        const row = el("div", "li"); row.append(el("span", "t", p));
+        const rr = el("div", "row"); rr.append(el("span", "a", fmt(obj[p])));
+        const b2 = el("button", "plain", "تسديد"); b2.type = "button"; b2.onclick = () => openSheet("debt", { person: p, dir, kind: "pay", amount: Math.round(obj[p]) });
+        rr.append(b2); row.append(rr); l.append(row);
+      });
+      w.append(l); return w;
+    };
+    db_.append(sec("الناس المدينون لك", owedToMe, "they"), sec("أنت مدين لـ", iOwe, "me"));
+    const nb = el("button", "ghost", "+ دين جديد"); nb.type = "button"; nb.onclick = () => openSheet("debt"); db_.append(nb);
+
+    const all = $("allList"); all.replaceChildren();
+    const es = [...S.entries].sort((a, b) => (b.date + (b.ts || "")).localeCompare(a.date + (a.ts || "")));
+    if (!es.length) all.append(el("p", "empty", "لا توجد عمليات بعد."));
+    es.slice(0, 60).forEach((e) => all.append(liRow(e, () => del("entries", e.id))));
+    if (es.length > 60) all.append(el("p", "sub", "تظهر آخر 60 عملية من " + es.length + "."));
+
+    // settings inputs: only fill when not focused, so typing isn't interrupted by live updates
+    const set = (id, v) => { const i = $(id); if (document.activeElement !== i) i.value = v || ""; };
+    set("s-weekly", S.settings.weekly); set("s-rate", S.settings.usdRate); set("s-ret", S.settings.returnFee); set("s-bef", S.settings.beFactor); set("s-kgfree", S.settings.kgFree); set("s-kgfee", S.settings.kgFee);
+    const og = $("openGrid");
+    if (!og.childNodes.length) Object.keys(ACCTS).forEach((k) => { const l = el("label", "f", ACCTS[k].n + (ACCTS[k].cur === "USD" ? " ($)" : " (دج)")); const i = el("input"); i.type = "number"; i.step = "any"; i.id = "s-open-" + k; l.append(i); og.append(l); });
+    Object.keys(ACCTS).forEach((k) => set("s-open-" + k, S.settings.open ? S.settings.open[k] : 0));
+  }
+
+  // ---------------- routing ----------------
+  const VIEWS = { today: "v-today", store: "v-store", campaigns: "v-camps", money: "v-money", guide: "v-guide" };
+  function route() {
+    const h = (location.hash || "#today").slice(1); const key = VIEWS[h] ? h : "today";
+    Object.entries(VIEWS).forEach(([k, id]) => ($(id).hidden = k !== key));
+    document.querySelectorAll("nav.tabs a").forEach((a) => a.setAttribute("aria-current", a.getAttribute("href") === "#" + key ? "page" : "false"));
+  }
+  window.addEventListener("hashchange", route);
+
+  function render() { renderToday(); renderStore(); renderCamps(); renderMoney(); }
+
+  // ---------------- wire up ----------------
+  EXAMPLES.forEach((x) => { const b = el("button", "chip", x); b.type = "button"; b.onclick = () => { const t = $("smartText"); t.value = (t.value ? t.value + "، " : "") + x; t.focus(); }; $("smartEx").append(b); });
+  $("smartGo").onclick = smartGo;
+  [["المال", [["صرفت مصروف", "expense"], ["دخلني مال", "income"], ["اشتريت دولار", "transfer", { from: "ccp", to: "bybit" }], ["استلمت من التوصيل", "transfer", { from: "delivery", to: "ccp" }], ["دين", "debt"]]],
+   ["السلعة", [["اشتريت سلعة", "stock"], ["نقلت سلعة", "stock_move"], ["أرسلت طرود", "ship"], ["نتيجة التوصيل", "results"], ["وصلني المرتجع", "retour_in"], ["منتج جديد", "product_new"]]],
+   ["الإعلانات", [["حملة جديدة", "campaign_new"], ["صرفت إعلانات", "ad"]]]]
+    .forEach(([g, items]) => {
+      const w = el("div", "pgroup"); w.append(el("h3", "", g)); const q = el("div", "quick");
+      items.forEach(([t, f, pre]) => { const b = el("button", "", t); b.type = "button"; b.onclick = () => openSheet(f, pre || null); q.append(b); });
+      w.append(q); $("quick").append(w);
+    });
+  $("addProduct").onclick = () => openSheet("product_new");
+  $("addCampaign").onclick = () => openSheet("campaign_new");
+  $("saveSettings").onclick = () => {
+    const s = Object.assign({}, S.settings, { id: "main", weekly: num($("s-weekly").value), usdRate: num($("s-rate").value), returnFee: num($("s-ret").value), beFactor: num($("s-bef").value) || 1.5, kgFree: num($("s-kgfree").value), kgFee: num($("s-kgfee").value), open: {} });
+    Object.keys(ACCTS).forEach((k) => (s.open[k] = num($("s-open-" + k).value)));
+    put("settings", s); $("setMsg").textContent = "تم الحفظ.";
+  };
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("sheetRoot").replaceChildren(); });
+
+  route(); render(); renderSmartAvail(); initStore();
+})();
+</script>
