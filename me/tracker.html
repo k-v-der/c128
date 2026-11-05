@@ -205,15 +205,17 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
   H -->|أرسلت طرود| T[في التوصيل]
   W -->|أرسلت طرود| T
   T -->|تسلّم الزبون| S[مُباعة: المال عند شركة التوصيل]
-  T -->|رفض| R[مرتجعة: -50 دج لكل طرد]
+  T -->|رجع مباشرة| D[نفس المكان: من البيت -50 دج، من المخزن مجاناً]
+  T -->|عالق| R[مرتجعة عالقة عند شركة التوصيل]
   R -->|وصلني المرتجع| H
   R -->|وصلني المرتجع| W</pre>
-      <p class="sub">المرتجع يبقى في خانة "مرتجعة" حتى يرجع لك فعلاً، ثم تسجّل "وصلني المرتجع" وتختار أين وضعته. وإن لم تسجّل "أرسلت طرود"، يأخذ الدفتر السلعة مباشرة من المكان الذي خرجت منه.</p>
+      <p class="sub">المرتجع نوعان. <strong>مباشر</strong>: يرجع وحده لنفس المكان الذي خرج منه، وتُخصم الرسوم فقط إن خرج من البيت. <strong>عالق</strong>: تحتفظ به شركة التوصيل، فيبقى في خانة "عالقة" ويعدّ الأيام، حتى تسجّل "وصلني المرتجع". وإن لم تسجّل "أرسلت طرود"، يأخذ الدفتر السلعة مباشرة من المكان الذي خرجت منه.</p>
     </div>
     <div class="card">
       <h2>طريق المال</h2>
       <pre class="mermaid" dir="ltr">flowchart TD
   I[دخل / راتب] --> C[الكاش أو CCP]
+  C <-->|تحويل| SB[مخبأ البيت: ادخار]
   C -->|شراء دولار| Y[Bybit USDT]
   Y -->|صرف إعلانات| A[الحملات]
   C -->|شراء سلعة| ST[السلعة]
@@ -254,7 +256,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
       <div class="fgrid">
         <label class="f">مصروف الأسبوع (دج)<input type="number" id="s-weekly" min="0"></label>
         <label class="f">سعر الدولار (دج لكل 1$)<input type="number" id="s-rate" min="0"></label>
-        <label class="f">رسوم المرتجع (دج)<input type="number" id="s-ret" min="0"></label>
+        <label class="f">رسوم المرتجع من البيت (دج)<input type="number" id="s-ret" min="0"></label>
         <label class="f">الوزن المجاني لكل طرد (كغ)<input type="number" id="s-kgfree" min="0"></label>
         <label class="f">رسوم كل كيلو إضافي (دج)<input type="number" id="s-kgfee" min="0"></label>
       </div>
@@ -287,7 +289,8 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
   const usd = (n) => "$" + (Math.round(n * 100) / 100).toLocaleString("en-US");
 
   const ACCTS = {
-    cash: { n: "الكاش", cur: "DZD" },
+    cash: { n: "الكاش (مصروف الجيب)", cur: "DZD" },
+    stash: { n: "مخبأ البيت (ادخار)", cur: "DZD" },
     ccp: { n: "CCP / بريدي موب", cur: "DZD" },
     delivery: { n: "عند شركة التوصيل", cur: "DZD" },
     bybit: { n: "Bybit (USDT)", cur: "USD" }
@@ -298,7 +301,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
     shipping: { n: "Yassir / نقل الطرود", living: false }, packaging: { n: "تغليف", living: false }, store_other: { n: "مصاريف متجر أخرى", living: false }
   };
   const LOCS = { home: "البيت", warehouse: "مخزن شركة التوصيل" };
-  const DEF = { weekly: 7500, usdRate: 0, returnFee: 50, kgFree: 5, kgFee: 50, open: { cash: 0, ccp: 0, delivery: 0, bybit: 0 } };
+  const DEF = { weekly: 7500, usdRate: 0, returnFee: 50, kgFree: 5, kgFee: 50, open: { cash: 0, stash: 0, ccp: 0, delivery: 0, bybit: 0 } };
   const S = { entries: [], products: [], campaigns: [], assets: [], settings: JSON.parse(JSON.stringify(DEF)) };
 
   // ---------------- storage ----------------
@@ -416,6 +419,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
     // Walk this product's movements in time order. States: home, warehouse, transit (out for delivery), retour (refused, not back yet), sold, damaged.
     s.st = { home: 0, warehouse: 0, transit: 0, retour: 0, sold: 0, damaged: 0 };
     const es = S.entries.filter((e) => e.product === p.id).sort((a, b) => ((a.date || "") + (a.ts || "")).localeCompare((b.date || "") + (b.ts || "")));
+    const stuckQ = [];
     const take = (n, loc) => { const t = Math.min(n, Math.max(0, s.st.transit)); s.st.transit -= t; s.st[loc] -= n - t; };
     es.forEach((e) => {
       switch (e.t) {
@@ -424,13 +428,19 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
         case "ship": s.st[LOCS[e.from] ? e.from : "warehouse"] -= num(e.qty); s.st.transit += num(e.qty); break;
         case "results": {
           const loc = LOCS[e.loc] ? e.loc : "warehouse"; const dp = pieces(e); const rp = num(e.returned);
-          if (e.v === 2) { take(dp, loc); take(rp, loc); s.st.retour += rp; } else s.st[loc] -= dp;
+          if (e.v === 2) {
+            take(dp, loc); take(rp, loc);
+            if (e.rtype === "stuck") { s.st.retour += rp; if (rp) stuckQ.push({ date: e.date, n: rp }); } else s.st[loc] += rp;
+          } else s.st[loc] -= dp;
           s.st.sold += dp; break;
         }
-        case "retour_in": s.st.retour -= num(e.qty); if (e.to === "damaged") s.st.damaged += num(e.qty); else s.st[LOCS[e.to] ? e.to : "home"] += num(e.qty); break;
+        case "retour_in": { let left = num(e.qty); while (left > 0 && stuckQ.length) { const k = Math.min(left, stuckQ[0].n); stuckQ[0].n -= k; left -= k; if (!stuckQ[0].n) stuckQ.shift(); } }
+          s.st.retour -= num(e.qty); if (e.to === "damaged") s.st.damaged += num(e.qty); else s.st[LOCS[e.to] ? e.to : "home"] += num(e.qty); break;
       }
     });
     s.loc = { home: s.st.home, warehouse: s.st.warehouse };
+    s.stuck = stuckQ.filter((q) => q.n > 0);
+    s.stuckDays = s.stuck.length ? Math.round((new Date(today() + "T12:00:00") - new Date(s.stuck[0].date + "T12:00:00")) / 864e5) : 0;
     s.stock = s.st.home + s.st.warehouse + s.st.transit + s.st.retour;
     s.stockValue = Math.max(0, s.stock) * s.avgCost;
     s.camps = S.campaigns.filter((c) => c.product === p.id).length;
@@ -464,7 +474,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
       case "retour_in": return { t: "وصلني المرتجع · " + pname(e.product), m: num(e.qty) + " قطعة · " + (e.to === "damaged" ? "تالفة" : "إلى " + (LOCS[e.to] || "")), a: "" };
       case "stock_move": return { t: "نقل ستوك · " + pname(e.product), m: num(e.qty) + " قطعة · " + (LOCS[e.from] || "") + " ← " + (LOCS[e.to] || ""), a: "" };
       case "ad": { const c = campById(e.campaign); return { t: "إعلانات · " + pname(e.product), m: (c ? c.name : "بدون حملة") + " · بسعر " + Math.round(num(e.rate) || rate()) + " دج", a: "−" + usd(num(e.usd)) }; }
-      case "results": return { t: "نتائج · " + pname(e.product), m: (num(e.orders) ? "طلبيات " + num(e.orders) + " · " : "") + "مُسلَّمة " + num(e.delivered) + (pieces(e) !== num(e.delivered) ? " (" + pieces(e) + " قطعة)" : "") + " · مرتجعة " + num(e.returned) + (num(e.discount) ? " · تخفيض " + fmt(num(e.discount)) : "") + (num(e.wf) ? " · وزن " + fmt(num(e.wf)) : "") + (num(e.wh) ? " · مخزن " + fmt(num(e.wh)) : "") + (e.actual ? " · مبلغ حقيقي" : ""), a: "+" + fmt(recv(e) - num(e.returned) * num(e.fee)) };
+      case "results": return { t: "نتائج · " + pname(e.product), m: (num(e.orders) ? "طلبيات " + num(e.orders) + " · " : "") + "مُسلَّمة " + num(e.delivered) + (pieces(e) !== num(e.delivered) ? " (" + pieces(e) + " قطعة)" : "") + (num(e.returned) ? " · مرتجعة " + num(e.returned) + (e.rtype === "stuck" ? " (عالقة)" : " (رجعت)") + (num(e.fee) ? " −" + fmt(num(e.returned) * num(e.fee)) : "") : "") + (num(e.discount) ? " · تخفيض " + fmt(num(e.discount)) : "") + (num(e.wf) ? " · وزن " + fmt(num(e.wf)) : "") + (num(e.wh) ? " · مخزن " + fmt(num(e.wh)) : "") + (e.actual ? " · مبلغ حقيقي" : ""), a: "+" + fmt(recv(e) - num(e.returned) * num(e.fee)) };
       case "debt": {
         const who = e.person || "؟";
         const t = e.dir === "they" ? (e.kind === "new" ? "سلّفت " + who : who + " ردّ لي") : (e.kind === "new" ? "تسلّفت من " + who : "رددت لـ " + who);
@@ -506,7 +516,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
     ad: { title: "صرف إعلانات", needs: "campaign", fields: [["campaign", "الحملة", "select", campOpts], ["usd", "المبلغ ($)", "number"], ["date", "التاريخ", "date"]] },
     ship: { title: "أرسلت طرود", needs: "product", hint: "عندما تؤكد طلبيات وتخرج السلعة للتوصيل. السلعة تنتقل إلى \"في التوصيل\".", fields: [["product", "المنتج", "select", prodOpts], ["campaign", "الحملة", "select", campOptsOpt], ["from", "خرجت من", "select", () => locOpts("warehouse")], ["qty", "عدد القطع", "number"], ["colis", "عدد الطرود", "number"], ["orders", "طلبيات وصلتك من الإعلان (اختياري)", "number"], ["date", "التاريخ", "date"]] },
     retour_in: { title: "وصلني المرتجع", needs: "product", hint: "عندما ترجع لك السلعة المرفوضة فعلاً.", fields: [["product", "المنتج", "select", prodOpts], ["qty", "عدد القطع", "number"], ["to", "أين وضعتها", "select", () => locOpts("home").concat([["damaged", "تالفة / ضاعت"]])], ["date", "التاريخ", "date"]] },
-    results: { title: "نتيجة التوصيل", needs: "product", hint: "كم طرد تسلّمه الزبون وكم رجع. التخفيض: كل ما نقصته للزبون في السعر أو التوصيل. إن كتبت المبلغ الصافي من كشف شركة التوصيل، يُستعمل بدل الحساب.", fields: [["product", "المنتج", "select", prodOpts], ["campaign", "الحملة", "select", campOptsOpt], ["loc", "الطرود خرجت من", "select", () => locOpts("warehouse")], ["delivered", "طرود تسلّمها الزبون", "number"], ["pieces", "عدد القطع المُسلَّمة (إن أخذ زبون أكثر من واحدة)", "number"], ["discount", "مجموع التخفيضات (دج)", "number"], ["returned", "طرود رجعت (مرتجعة)", "number"], ["actual", "المبلغ الصافي من كشف شركة التوصيل (اختياري)", "number"], ["date", "التاريخ", "date"]] },
+    results: { title: "نتيجة التوصيل", needs: "product", hint: "كم طرد تسلّمه الزبون وكم رجع. التخفيض: كل ما نقصته للزبون في السعر أو التوصيل. إن كتبت المبلغ الصافي من كشف شركة التوصيل، يُستعمل بدل الحساب.", fields: [["product", "المنتج", "select", prodOpts], ["campaign", "الحملة", "select", campOptsOpt], ["loc", "الطرود خرجت من", "select", () => locOpts("warehouse")], ["delivered", "طرود تسلّمها الزبون", "number"], ["pieces", "عدد القطع المُسلَّمة (إن أخذ زبون أكثر من واحدة)", "number"], ["discount", "مجموع التخفيضات (دج)", "number"], ["returned", "طرود رجعت (مرتجعة)", "number"], ["rtype", "المرتجع", "select", () => [["direct", "رجع مباشرة لنفس المكان"], ["stuck", "عالق عند شركة التوصيل"]]], ["actual", "المبلغ الصافي من كشف شركة التوصيل (اختياري)", "number"], ["date", "التاريخ", "date"]] },
     debt: { title: "دين", fields: [["person", "الشخص", "text"], ["dir", "النوع", "select", () => [["they", "هو مدين لي"], ["me", "أنا مدين له"]]], ["kind", "ماذا حدث", "select", () => [["new", "دين جديد"], ["pay", "تسديد"]]], ["amount", "المبلغ (دج)", "number"], ["acct", "المال خرج/دخل من", "select", () => dzdAcctOpts().concat([["none", "بدون حركة مال"]])], ["date", "التاريخ", "date"]] },
     campaign_new: { title: "حملة جديدة", needs: "product", fields: [["product", "المنتج", "select", prodOpts], ["name", "اسم الحملة", "text"], ["budgetUsd", "ميزانية التجربة ($)", "number"], ["date", "تاريخ البداية", "date"]] },
     asset_new: { title: "شيء له قيمة", hint: "أي شيء تملكه وله قيمة ولم يُسجَّل في مكان آخر: ذهب، هاتف، دراجة، سلعة غير المنتجات...", fields: [["name", "ما هو", "text"], ["value", "قيمته التقريبية (دج)", "number"], ["where", "أين هو", "text"], ["date", "منذ متى", "date"]] },
@@ -575,7 +585,8 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
         const p = prodById(e.product); if (!p) return null;
         ["orders", "delivered", "returned"].forEach((k) => (e[k] = Math.max(0, Math.round(num(e[k])))));
         if (!e.orders && !e.delivered && !e.returned) return null;
-        e.v = 2; e.fee = num(S.settings.returnFee); if (!LOCS[e.loc]) e.loc = "warehouse";
+        e.v = 2; if (!LOCS[e.loc]) e.loc = "warehouse"; if (e.rtype !== "stuck") e.rtype = "direct";
+        e.fee = e.loc === "home" ? num(S.settings.returnFee) : 0;
         e.pieces = Math.max(e.delivered, Math.round(num(e.pieces)) || e.delivered); e.discount = Math.max(0, num(e.discount));
         if (num(e.actual) > 0) { e.recv = num(e.actual); e.actual = true; e.wf = 0; e.wh = 0; }
         else { const x = expectedNet(p, e.delivered, e.pieces, e.discount, e.loc); e.recv = e.delivered ? x.net : 0; e.wf = e.delivered ? x.wf : 0; e.wh = e.delivered ? x.wh : 0; delete e.actual; }
@@ -628,7 +639,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
     return [
       "أنت محاسب لشخص جزائري يدير متجراً بالدفع عند الاستلام. حوّل رسالته إلى عمليات JSON. يكتب بالعربية أو الدارجة أو الفرنسية أو الإنجليزية.",
       "اليوم: " + today() + ". العملة: دينار جزائري. Bybit بالدولار (USDT). سعر الدولار الحالي تقريباً: " + (Math.round(rate()) || "غير معروف") + " دج.",
-      "الحسابات acct: cash=الكاش، ccp=CCP أو بريدي موب، delivery=المال عند شركة التوصيل، bybit=USDT في Bybit.",
+      "الحسابات acct: cash=الكاش في الجيب (مصروف الأكل)، stash=مخبأ البيت أو المال المخبأ المدخر، ccp=CCP أو بريدي موب، delivery=المال عند شركة التوصيل، bybit=USDT في Bybit.",
       "فئات المصاريف cat: food أكل، transport نقل، bills فواتير، flexy فليكسي أو رصيد الهاتف، living_other معيشة أخرى، shipping Yassir أو نقل الطرود، packaging تغليف، store_other مصاريف متجر أخرى.",
       "المنتجات: " + JSON.stringify(prods),
       "الحملات النشطة: " + JSON.stringify(camps),
@@ -641,7 +652,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
       '- ship {product, campaign?, from, qty, colis?, orders?}  أرسل طرود للتوصيل (أكّد طلبيات وخرجت السلعة). from: home أو warehouse',
       '- retour_in {product, qty, to}  وصلته السلعة المرتجعة فعلاً. to: home أو warehouse أو damaged',
       '- ad {campaign?, product, usd}  صرف إعلانات بالدولار',
-      '- results {campaign?, product, orders, delivered, pieces?, discount?, returned, loc, actual?}  delivered طرود تسلّمها الزبون، pieces عدد القطع إن أخذ زبون أكثر من قطعة، discount مجموع التخفيضات بالدينار، returned مرتجعة، loc من أين خرجت السلعة (الافتراضي warehouse)، actual المبلغ الصافي إن ذكره من كشف شركة التوصيل',
+      '- results {campaign?, product, orders, delivered, pieces?, discount?, returned, loc, actual?}  delivered طرود تسلّمها الزبون، pieces عدد القطع إن أخذ زبون أكثر من قطعة، discount مجموع التخفيضات بالدينار، returned مرتجعة، rtype: direct إن رجعت مباشرة أو stuck إن بقيت عالقة عند شركة التوصيل، loc من أين خرجت السلعة (الافتراضي warehouse)، actual المبلغ الصافي إن ذكره من كشف شركة التوصيل',
       '- debt {person, dir, kind, amount, acct}  dir="they" هو مدين لي، dir="me" أنا مدين له. kind="new" دين جديد، kind="pay" تسديد. acct="none" إن لم يتحرك مال.',
       '- campaign_new {product, name, budgetUsd?}',
       '- asset_new {name, value, where}  شيء له قيمة يملكه (ذهب، هاتف...)',
@@ -738,7 +749,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
     const done = (k) => { try { return localStorage.getItem("q-" + k) === td; } catch (e) { return false; } };
     const mark = (k) => { try { localStorage.setItem("q-" + k, td); } catch (e) {} renderCheckin(); };
     const has = (fn) => S.entries.some((e) => e.date === td && fn(e));
-    let retour = 0; S.products.forEach((p) => (retour += Math.max(0, productStats(p).st.retour)));
+    let retour = 0, oldest = 0; S.products.forEach((p) => { const ps = productStats(p); retour += Math.max(0, ps.st.retour); oldest = Math.max(oldest, ps.stuckDays || 0); });
     const active = S.campaigns.filter((c) => c.status !== "stopped");
     const qs = [
       ["spent", "هل صرفت مالاً اليوم؟", () => has((e) => e.t === "expense"), () => { $("smartText").focus(); }],
@@ -746,7 +757,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
       ["ads", "هل صرفت على الإعلانات اليوم؟", () => !active.length || has((e) => e.t === "ad"), () => openSheet("ad")],
       ["ship", "هل أرسلت طرود اليوم؟", () => !S.products.length || has((e) => e.t === "ship"), () => openSheet("ship")],
       ["res", "هل وصلك خبر تسليم أو مرتجع؟", () => !S.products.length || has((e) => e.t === "results"), () => openSheet("results")],
-      ["ret", "عندك " + Math.round(retour) + " قطعة مرتجعة لم تسجّل رجوعها. هل وصلتك؟", () => retour <= 0, () => openSheet("retour_in")],
+      ["ret", "عندك " + Math.round(retour) + " قطعة مرتجعة عالقة عند شركة التوصيل (أقدمها منذ " + oldest + " يوم). هل وصلك شيء منها؟", () => retour <= 0, () => openSheet("retour_in")],
       ["cash", "هل استلمت مالاً من شركة التوصيل؟", () => !S.products.length || has((e) => e.t === "transfer" && e.from === "delivery"), () => openSheet("transfer", { from: "delivery", to: "ccp" })]
     ].filter(([k, , answered]) => !done(k) && !answered());
     if (!qs.length) { box.append(el("h2", "", "أسئلة اليوم"), el("p", "empty", "أجبت عن كل شيء اليوم.")); return; }
@@ -780,7 +791,8 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
     const a1 = el("div", "farrow"); a1.append(act("↓ أرسلت طرود", "ship")); wrap.append(a1);
     const r2 = el("div", "frow"); r2.style.gridTemplateColumns = "1fr"; r2.append(box("", "في التوصيل", s.st.transit)); wrap.append(r2);
     const a2 = el("div", "farrow"); a2.append(act("↓ نتيجة التوصيل", "results")); wrap.append(a2);
-    const r3 = el("div", "frow"); r3.append(box("sold", "مُباعة", s.st.sold), el("span"), box("ret", "مرتجعة (لم ترجع بعد)", s.st.retour)); wrap.append(r3);
+    const r3 = el("div", "frow"); r3.append(box("sold", "مُباعة", s.st.sold), el("span"), box("ret", "مرتجعة عالقة", s.st.retour)); wrap.append(r3);
+    if (s.st.retour > 0) wrap.append(el("p", "pill warn", "أقدم مرتجع عالق منذ " + s.stuckDays + " يوم (" + s.stuck[0].date + ")"));
     if (s.st.retour > 0) { const a3 = el("div", "farrow"); a3.append(act("↑ وصلني المرتجع", "retour_in", { qty: Math.round(s.st.retour) })); wrap.append(a3); }
     if (s.st.damaged > 0) wrap.append(el("p", "sub", "تالفة أو ضائعة: " + Math.round(s.st.damaged)));
     return wrap;
