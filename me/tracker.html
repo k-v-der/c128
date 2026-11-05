@@ -130,9 +130,10 @@ details > summary::-webkit-details-marker { display: none; }
     </details>
   </section>
 
-  <section class="card" aria-labelledby="h-camps" id="campCard" hidden>
+  <section class="card" aria-labelledby="h-camps" id="campCard">
     <h2 id="h-camps">📣 حملاتك</h2>
     <div class="goods" id="camps"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" id="newCampBtn">+ حملة جديدة</button><button type="button" class="soft" id="adsBtn" style="font-size:0.9rem;padding:10px 14px">صرفت إعلانات</button></div>
   </section>
 
   <section class="card" aria-labelledby="h-log">
@@ -290,8 +291,9 @@ details > summary::-webkit-details-marker { display: none; }
     hid.forEach((it) => bx.append(goodRow(it, "أرجِعه", () => { it.hidden = false; saveDoc("items", it); render(); })));
 
     const act = CAMPS.filter((c) => c.status !== "closed");
-    $("campCard").hidden = !act.length;
     const cb = $("camps"); cb.replaceChildren();
+    $("adsBtn").hidden = !act.length;
+    if (!act.length) cb.append(el("p", "status", "لا توجد حملة بعد. أنشئ حملتك الأولى: من المخزن، من البيت، تست، أو شراكة."));
     act.forEach((c) => {
       const s = cstats(c); const r = el("div", "g"); const n = el("span", "n");
       n.append(el("span", "", c.name), el("span", "sub", CTYPE[c.type] + " · طلبية " + (s.cpo !== null ? usd(s.cpo) : "–") + " / تعادل " + (s.be !== null ? usd(s.be) : "–")));
@@ -493,6 +495,8 @@ details > summary::-webkit-details-marker { display: none; }
   };
 
   $("go").onclick = () => { W.stack = []; F.root(); };
+  $("newCampBtn").onclick = () => { W.stack = []; F.newCamp(); };
+  $("adsBtn").onclick = () => { W.stack = []; F.ads(); };
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
   render(); init();
 })();
