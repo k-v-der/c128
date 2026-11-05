@@ -1,0 +1,453 @@
+<title>Store Money Tracker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one narrow column, phone first. Verdict cards on top, then the three tools. */
+:root {
+  --bg: #f6f7f8;
+  --surface: #ffffff;
+  --fg: #16202a;
+  --muted: #5d6b78;
+  --line: #dde2e7;
+  --accent: #1f5f8b;
+  --good: #1d7a4a;
+  --good-bg: #e3f3ea;
+  --bad: #b3261e;
+  --bad-bg: #fbe7e5;
+  --warn: #8a5a00;
+  --warn-bg: #fbf0d9;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161b; --surface: #1a2128; --fg: #e6ebef; --muted: #98a6b3; --line: #2c3640;
+    --accent: #6cb2e0; --good: #5fcf8f; --good-bg: #16301f; --bad: #ff8a80; --bad-bg: #3a1a18;
+    --warn: #f0c060; --warn-bg: #352a12; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161b; --surface: #1a2128; --fg: #e6ebef; --muted: #98a6b3; --line: #2c3640;
+  --accent: #6cb2e0; --good: #5fcf8f; --good-bg: #16301f; --bad: #ff8a80; --bad-bg: #3a1a18;
+  --warn: #f0c060; --warn-bg: #352a12; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+main { max-width: 760px; margin: 0 auto; padding-block: 24px 64px; display: grid; gap: 28px; }
+h1 { font-size: 1.6rem; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+h2 { font-size: 1.1rem; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+.sub { color: var(--muted); }
+header { display: grid; gap: 6px; }
+.status { font-size: 0.8rem; color: var(--muted); }
+section { display: grid; gap: 14px; }
+.sec-head { display: grid; gap: 2px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.num, input[type="number"], td.n { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+label.f { display: grid; gap: 4px; font-size: 0.8rem; color: var(--muted); font-weight: 500; }
+input, select {
+  font: inherit; font-size: 1rem; color: var(--fg); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 6px; padding: 8px 10px; width: 100%; min-width: 0;
+}
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button {
+  font: inherit; font-weight: 600; font-size: 0.9rem; border-radius: 6px; padding: 9px 14px; cursor: pointer;
+  border: 1px solid var(--accent); background: var(--accent); color: var(--surface);
+}
+button.ghost { background: transparent; color: var(--accent); }
+button.x { background: transparent; border: none; color: var(--muted); padding: 4px 8px; font-size: 1.1rem; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.verdict { border-radius: 10px; padding: 16px; display: grid; gap: 4px; border: 1px solid transparent; }
+.verdict .big { font-family: var(--font-num); font-size: 1.6rem; font-weight: 500; }
+.verdict .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+.v-good { background: var(--good-bg); color: var(--good); }
+.v-bad { background: var(--bad-bg); color: var(--bad); }
+.v-warn { background: var(--warn-bg); color: var(--warn); }
+.v-none { background: var(--surface); border-color: var(--line); color: var(--muted); }
+.verdicts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.pill { display: inline-block; font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 0.9rem; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; text-align: right; font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.kv .total { font-weight: 600; color: var(--fg); border-top: 1px solid var(--line); padding-top: 6px; }
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th { text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+td.n, th.n { text-align: right; }
+td input { padding: 4px 6px; font-size: 0.9rem; width: 5.5em; text-align: right; }
+.banner { background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; font-size: 0.9rem; }
+.banner button { border-color: var(--warn); background: transparent; color: var(--warn); padding: 5px 10px; }
+.rules { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; }
+.empty { color: var(--muted); font-size: 0.9rem; }
+@media (prefers-reduced-motion: no-preference) { button { transition: opacity .15s; } button:hover { opacity: .85; } }
+</style>
+
+<main>
+  <header>
+    <h1>Store Money Tracker</h1>
+    <p class="sub">Is the store making money or eating your food money? Type three numbers a day and this page does the math.</p>
+    <p class="status" id="status">Loading…</p>
+  </header>
+
+  <div class="banner" id="exampleBanner" hidden>
+    <span>These are <strong>example numbers</strong> so you can see how it works. Replace them with yours.</span>
+    <button type="button" id="clearExamples">Clear examples</button>
+  </div>
+
+  <section aria-labelledby="h-verdict">
+    <h2 id="h-verdict">This month</h2>
+    <div class="verdicts" id="verdicts"></div>
+  </section>
+
+  <section aria-labelledby="h-money">
+    <div class="sec-head">
+      <h2 id="h-money">1. Monthly money check</h2>
+      <p class="sub">Do this on payday. Food and bills come first, ads get only what's left.</p>
+    </div>
+    <div class="card">
+      <div class="grid2">
+        <label class="f">Income this month<input type="number" inputmode="decimal" id="m-income" min="0"></label>
+        <label class="f">Food + bills (protected)<input type="number" inputmode="decimal" id="m-essentials" min="0"></label>
+        <label class="f">Wedding savings<input type="number" inputmode="decimal" id="m-savings" min="0"></label>
+        <label class="f">Currency<input type="text" id="m-currency" placeholder="e.g. DA, $, €" maxlength="6"></label>
+      </div>
+      <dl class="kv" id="moneyResult"></dl>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-products">
+    <div class="sec-head">
+      <h2 id="h-products">2. Products and break-even</h2>
+      <p class="sub">Fill this in once per product. It shows the most you can pay in ads for each delivered order.</p>
+    </div>
+    <div id="products" style="display:grid;gap:12px"></div>
+    <div class="row"><button type="button" class="ghost" id="addProduct">+ Add product</button></div>
+  </section>
+
+  <section aria-labelledby="h-log">
+    <div class="sec-head">
+      <h2 id="h-log">3. Daily log</h2>
+      <p class="sub">Each evening: ad spend from the ads manager, new orders from the store. Fill in delivered when the delivery company confirms.</p>
+    </div>
+    <div class="card">
+      <div class="grid2">
+        <label class="f">Date<input type="date" id="l-date"></label>
+        <label class="f">Product<select id="l-product"></select></label>
+        <label class="f">Ad spend<input type="number" inputmode="decimal" id="l-spend" min="0"></label>
+        <label class="f">New orders<input type="number" inputmode="numeric" id="l-orders" min="0"></label>
+        <label class="f">Delivered (can add later)<input type="number" inputmode="numeric" id="l-delivered" min="0"></label>
+      </div>
+      <div class="row"><button type="button" id="addLog">Add day</button><span class="status" id="logMsg"></span></div>
+    </div>
+    <div class="card">
+      <div class="tbl-wrap"><table id="logTable"></table></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-rules">
+    <h2 id="h-rules">The rules</h2>
+    <div class="card">
+      <ol class="rules">
+        <li>Food and bills are set aside first. Ads never touch them.</li>
+        <li>Ads get a fixed budget for the month. When it's spent, stop.</li>
+        <li>When a product has used its test budget and still loses money, stop it. No "one more day".</li>
+        <li>Count <strong>delivered</strong> orders. Refused orders still cost you.</li>
+      </ol>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const uid = () => Math.random().toString(36).slice(2, 10);
+  const today = () => new Date().toISOString().slice(0, 10);
+  const monthKey = (d) => (d || today()).slice(0, 7);
+  const num = (v) => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
+
+  function exampleState() {
+    const p1 = uid(), p2 = uid();
+    const d = new Date(); const ds = (k) => { const x = new Date(d); x.setDate(d.getDate() - k); return x.toISOString().slice(0, 10); };
+    return {
+      example: true,
+      money: { income: 60000, essentials: 30000, savings: 15000, currency: "" },
+      products: [
+        { id: p1, name: "Example: hair straightener", price: 3500, cost: 1500, delivery: 500, other: 200, testBudget: 8000 },
+        { id: p2, name: "Example: phone holder", price: 1800, cost: 700, delivery: 500, other: 100, testBudget: 5000 }
+      ],
+      logs: [
+        { id: uid(), date: ds(4), product: p1, spend: 2000, orders: 6, delivered: 4 },
+        { id: uid(), date: ds(3), product: p1, spend: 2000, orders: 8, delivered: 5 },
+        { id: uid(), date: ds(2), product: p1, spend: 2000, orders: 7, delivered: 4 },
+        { id: uid(), date: ds(3), product: p2, spend: 1500, orders: 4, delivered: 2 },
+        { id: uid(), date: ds(2), product: p2, spend: 1500, orders: 3, delivered: 1 },
+        { id: uid(), date: ds(1), product: p2, spend: 1500, orders: 3, delivered: null }
+      ]
+    };
+  }
+  function emptyState() {
+    return { example: false, money: { income: 0, essentials: 0, savings: 0, currency: "" }, products: [], logs: [] };
+  }
+
+  let state = exampleState();
+
+  // ---------- storage: private db doc, localStorage fallback ----------
+  let docRef = null, saving = false, pending = false, saveTimer = null;
+  const LS = "store-money-tracker";
+  function setStatus(t) { $("status").textContent = t; }
+  function lsRead() { try { const s = localStorage.getItem(LS); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+  function lsWrite() { try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) {} }
+  function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(save, 700); }
+  async function save() {
+    lsWrite();
+    if (!docRef) { setStatus("Saved on this device only."); return; }
+    if (saving) { pending = true; return; }
+    saving = true; setStatus("Saving…");
+    try { await docRef.set(JSON.parse(JSON.stringify(state))); setStatus("Saved to your account. Only you can see it."); }
+    catch (e) { setStatus("Couldn't save to your account. Your numbers are kept on this device for now."); }
+    saving = false;
+    if (pending) { pending = false; save(); }
+  }
+  async function initStorage() {
+    const local = lsRead();
+    if (local) { state = local; render(); }
+    if (!window.claude || !window.claude.use) { setStatus(local ? "Saved on this device only." : "Showing example numbers."); return; }
+    try {
+      const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+      const id = user ? await user.id() : null;
+      if (!db || !id) { setStatus(local ? "Saved on this device only." : "Sign in to save your numbers. Showing examples."); return; }
+      docRef = db.doc("data/users/" + id + "/tracker");
+      const timer = setTimeout(() => setStatus("Can't reach your saved numbers yet. Showing what's on this device."), 10000);
+      const snap = await docRef.get();
+      clearTimeout(timer);
+      if (snap.exists) { state = Object.assign(emptyState(), snap.data()); render(); setStatus("Loaded from your account. Only you can see it."); }
+      else { setStatus(state.example ? "Showing example numbers. Your changes save to your account." : "Ready."); if (!state.example) save(); }
+    } catch (e) { setStatus("Saved on this device only."); }
+  }
+
+  // ---------- math ----------
+  const cur = () => (state.money.currency || "").trim();
+  const fmt = (n) => { const s = Math.round(n).toLocaleString(); return cur() ? s + " " + cur() : s; };
+  const unitProfit = (p) => num(p.price) - num(p.cost) - num(p.delivery) - num(p.other);
+  function productStats(p, onlyMonth) {
+    const m = monthKey();
+    const logs = state.logs.filter((l) => l.product === p.id && (!onlyMonth || monthKey(l.date) === m));
+    const spend = logs.reduce((a, l) => a + num(l.spend), 0);
+    const orders = logs.reduce((a, l) => a + num(l.orders), 0);
+    const delivered = logs.reduce((a, l) => a + num(l.delivered), 0);
+    const pendingDays = logs.filter((l) => l.delivered === null || l.delivered === "" || l.delivered === undefined).length;
+    const profit = delivered * unitProfit(p) - spend;
+    const cpd = delivered > 0 ? spend / delivered : null;
+    const rate = orders > 0 ? delivered / orders : null;
+    let verdict;
+    if (!logs.length) verdict = { cls: "v-none", text: "No data yet" };
+    else if (unitProfit(p) <= 0) verdict = { cls: "v-bad", text: "Loses money even before ads" };
+    else if (profit >= 0) verdict = { cls: "v-good", text: "Making money" };
+    else if (spend >= num(p.testBudget) && num(p.testBudget) > 0) verdict = { cls: "v-bad", text: "Stop this product" };
+    else verdict = { cls: "v-warn", text: "Losing so far. Watch it" };
+    return { spend, orders, delivered, profit, cpd, rate, pendingDays, verdict, n: logs.length };
+  }
+
+  // ---------- render ----------
+  function pill(v) { const s = document.createElement("span"); s.className = "pill " + v.cls; s.textContent = v.text; return s; }
+  function kv(dl, rows) {
+    dl.replaceChildren();
+    rows.forEach(([k, v, total]) => {
+      const dt = document.createElement("dt"); dt.textContent = k;
+      const dd = document.createElement("dd"); dd.textContent = v;
+      if (total) { dt.className = "total"; dd.className = "total"; }
+      dl.append(dt, dd);
+    });
+  }
+
+  function renderVerdicts() {
+    const box = $("verdicts"); box.replaceChildren();
+    const m = state.money;
+    const adBudget = num(m.income) - num(m.essentials) - num(m.savings);
+    const monthSpend = state.logs.filter((l) => monthKey(l.date) === monthKey()).reduce((a, l) => a + num(l.spend), 0);
+    const monthProfit = state.products.reduce((a, p) => a + productStats(p, true).profit, 0);
+
+    const card = (cls, lbl, big, note) => {
+      const d = document.createElement("div"); d.className = "verdict " + cls;
+      const a = document.createElement("span"); a.className = "lbl"; a.textContent = lbl;
+      const b = document.createElement("span"); b.className = "big"; b.textContent = big;
+      const c = document.createElement("span"); c.textContent = note;
+      d.append(a, b, c); box.append(d);
+    };
+    card(monthProfit >= 0 ? "v-good" : "v-bad", "Store profit this month", fmt(monthProfit),
+      monthProfit >= 0 ? "The store is paying for itself." : "The store is costing you money.");
+    const left = adBudget - monthSpend;
+    if (num(m.income) <= 0) card("v-none", "Ad money left", "–", "Fill in the money check to see this.");
+    else if (adBudget <= 0) card("v-bad", "Ad money left", fmt(left), "No room for ads after food, bills and savings.");
+    else card(left >= 0 ? (left < adBudget * 0.2 ? "v-warn" : "v-good") : "v-bad", "Ad money left", fmt(left),
+      left >= 0 ? "Spent " + fmt(monthSpend) + " of " + fmt(adBudget) + "." : "Over budget. Stop ads until next month.");
+  }
+
+  function renderMoney() {
+    const m = state.money;
+    $("m-income").value = m.income || ""; $("m-essentials").value = m.essentials || "";
+    $("m-savings").value = m.savings || ""; $("m-currency").value = m.currency || "";
+    const adBudget = num(m.income) - num(m.essentials) - num(m.savings);
+    kv($("moneyResult"), [
+      ["Income", fmt(num(m.income))],
+      ["− Food + bills", fmt(num(m.essentials))],
+      ["− Wedding savings", fmt(num(m.savings))],
+      ["= Max for ads this month", fmt(Math.max(0, adBudget)), true]
+    ]);
+  }
+
+  const PFIELDS = [["name", "Product name", "text"], ["price", "Selling price", "number"], ["cost", "Product cost", "number"],
+    ["delivery", "Delivery fee", "number"], ["other", "Packaging, confirmation, other", "number"], ["testBudget", "Test budget (ads)", "number"]];
+
+  function renderProducts() {
+    const box = $("products"); box.replaceChildren();
+    if (!state.products.length) {
+      const p = document.createElement("p"); p.className = "empty"; p.textContent = "No products yet. Add your main product first.";
+      box.append(p);
+    }
+    state.products.forEach((p) => {
+      const c = document.createElement("div"); c.className = "card";
+      const head = document.createElement("div"); head.className = "row"; head.style.justifyContent = "space-between";
+      const st = productStats(p, false);
+      const t = document.createElement("strong"); t.textContent = p.name || "Unnamed product";
+      const right = document.createElement("div"); right.className = "row";
+      right.append(pill(st.verdict));
+      const del = document.createElement("button"); del.type = "button"; del.className = "x"; del.textContent = "×";
+      del.setAttribute("aria-label", "Remove " + (p.name || "product"));
+      del.dataset.confirm = "0";
+      del.onclick = () => {
+        if (del.dataset.confirm === "0") { del.dataset.confirm = "1"; del.textContent = "Remove?"; del.style.fontSize = "0.85rem"; return; }
+        state.products = state.products.filter((x) => x.id !== p.id);
+        state.logs = state.logs.filter((l) => l.product !== p.id);
+        changed();
+      };
+      right.append(del);
+      head.append(t, right);
+
+      const g = document.createElement("div"); g.className = "grid2";
+      PFIELDS.forEach(([k, label, type]) => {
+        const l = document.createElement("label"); l.className = "f"; l.textContent = label;
+        const i = document.createElement("input"); i.type = type; i.id = "p-" + p.id + "-" + k;
+        if (type === "number") { i.inputMode = "decimal"; i.min = "0"; }
+        i.value = p[k] || (type === "text" ? "" : "");
+        i.addEventListener("input", () => { p[k] = type === "number" ? num(i.value) : i.value; softChanged(); });
+        i.addEventListener("change", () => changed());
+        l.append(i); g.append(l);
+      });
+
+      const dl = document.createElement("dl"); dl.className = "kv";
+      const up = unitProfit(p);
+      const rows = [["Profit per delivered order, before ads", fmt(up)],
+        ["Max ad cost per delivered order", fmt(Math.max(0, up)), true]];
+      if (st.n) {
+        rows.push(["Ad spend so far", fmt(st.spend)]);
+        rows.push(["Orders → delivered", st.orders + " → " + st.delivered + (st.rate !== null ? "  (" + Math.round(st.rate * 100) + "%)" : "")]);
+        rows.push(["Your ad cost per delivered order", st.cpd !== null ? fmt(st.cpd) : "–"]);
+        rows.push(["Profit or loss so far", fmt(st.profit), true]);
+      }
+      kv(dl, rows);
+      c.append(head, g, dl);
+      if (st.pendingDays) {
+        const n = document.createElement("p"); n.className = "empty";
+        n.textContent = st.pendingDays + " day(s) still waiting for delivered counts. The numbers will change when you fill them in.";
+        c.append(n);
+      }
+      box.append(c);
+    });
+
+    const sel = $("l-product"); const prev = sel.value; sel.replaceChildren();
+    state.products.forEach((p) => { const o = document.createElement("option"); o.value = p.id; o.textContent = p.name || "Unnamed product"; sel.append(o); });
+    if (prev && state.products.some((p) => p.id === prev)) sel.value = prev;
+  }
+
+  function renderLog() {
+    const t = $("logTable"); t.replaceChildren();
+    if (!state.logs.length) {
+      const tr = document.createElement("tr"); const td = document.createElement("td"); td.className = "empty";
+      td.textContent = "No days logged yet. Add your first day above."; tr.append(td); t.append(tr); return;
+    }
+    const thead = document.createElement("thead"); const hr = document.createElement("tr");
+    [["Date", ""], ["Product", ""], ["Ad spend", "n"], ["Orders", "n"], ["Delivered", "n"], ["", ""]].forEach(([h, c]) => {
+      const th = document.createElement("th"); th.textContent = h; if (c) th.className = c; hr.append(th);
+    });
+    thead.append(hr); t.append(thead);
+    const tb = document.createElement("tbody");
+    const byId = Object.fromEntries(state.products.map((p) => [p.id, p]));
+    [...state.logs].sort((a, b) => b.date.localeCompare(a.date)).forEach((l) => {
+      const tr = document.createElement("tr");
+      const d = document.createElement("td"); d.className = "num"; d.textContent = l.date;
+      const p = document.createElement("td"); p.textContent = byId[l.product] ? byId[l.product].name : "–";
+      tr.append(d, p);
+      ["spend", "orders", "delivered"].forEach((k) => {
+        const td = document.createElement("td"); td.className = "n";
+        const i = document.createElement("input"); i.type = "number"; i.min = "0"; i.id = "log-" + l.id + "-" + k;
+        i.setAttribute("aria-label", k + " on " + l.date);
+        i.value = l[k] === null || l[k] === undefined ? "" : l[k];
+        if (k === "delivered") i.placeholder = "?";
+        i.addEventListener("change", () => { l[k] = i.value === "" ? (k === "delivered" ? null : 0) : num(i.value); changed(); });
+        td.append(i); tr.append(td);
+      });
+      const x = document.createElement("td");
+      const b = document.createElement("button"); b.type = "button"; b.className = "x"; b.textContent = "×";
+      b.setAttribute("aria-label", "Remove day " + l.date);
+      b.onclick = () => { state.logs = state.logs.filter((y) => y.id !== l.id); changed(); };
+      x.append(b); tr.append(x); tb.append(tr);
+    });
+    t.append(tb);
+  }
+
+  function render() {
+    $("exampleBanner").hidden = !state.example;
+    renderVerdicts(); renderMoney(); renderProducts(); renderLog();
+    if (!$("l-date").value) $("l-date").value = today();
+  }
+  function changed() {
+    scheduleSave();
+    // Re-render after focus has moved, then put focus back on the same field.
+    setTimeout(() => {
+      const fid = document.activeElement && document.activeElement.id;
+      render();
+      if (fid) { const el = document.getElementById(fid); if (el) el.focus(); }
+    }, 0);
+  }
+  function softChanged() { renderVerdicts(); scheduleSave(); }
+
+  // ---------- inputs ----------
+  [["m-income", "income"], ["m-essentials", "essentials"], ["m-savings", "savings"]].forEach(([id, k]) => {
+    $(id).addEventListener("input", () => { state.money[k] = num($(id).value); renderVerdicts(); kvMoney(); scheduleSave(); });
+  });
+  $("m-currency").addEventListener("change", () => { state.money.currency = $("m-currency").value.trim(); changed(); });
+  function kvMoney() {
+    const m = state.money; const adBudget = num(m.income) - num(m.essentials) - num(m.savings);
+    kv($("moneyResult"), [["Income", fmt(num(m.income))], ["− Food + bills", fmt(num(m.essentials))],
+      ["− Wedding savings", fmt(num(m.savings))], ["= Max for ads this month", fmt(Math.max(0, adBudget)), true]]);
+  }
+  $("addProduct").onclick = () => {
+    const id = uid();
+    state.products.push({ id, name: "", price: 0, cost: 0, delivery: 0, other: 0, testBudget: 0 });
+    render(); scheduleSave();
+    const el = document.getElementById("p-" + id + "-name"); if (el) el.focus();
+  };
+  $("addLog").onclick = () => {
+    const product = $("l-product").value;
+    if (!product) { $("logMsg").textContent = "Add a product first (section 2)."; return; }
+    const dv = $("l-delivered").value;
+    state.logs.push({ id: uid(), date: $("l-date").value || today(), product,
+      spend: num($("l-spend").value), orders: num($("l-orders").value), delivered: dv === "" ? null : num(dv) });
+    $("l-spend").value = ""; $("l-orders").value = ""; $("l-delivered").value = "";
+    $("logMsg").textContent = "Added.";
+    changed();
+  };
+  $("clearExamples").onclick = () => { state = emptyState(); render(); save(); };
+
+  render();
+  initStorage();
+})();
+</script>

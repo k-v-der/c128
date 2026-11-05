@@ -2,6 +2,10 @@
 
 A small system for getting organized. Open it whenever you feel lost.
 
+## Store tracker
+
+**[Open the tracker](https://claude.ai/artifact/2eQDNyDDQ2SbvzwWAsTvu4)** (or `tracker.html` in this folder). Each evening, type in ad spend, orders and delivered. It tells you if the store is making or losing money, and how much ad money is left after food, bills and savings.
+
 ## Feeling lost? Do this (5 min)
 
 1. Open **[now.md](now.md)**. Do the *next action* written there. That's all you have to do.
@@ -13,6 +17,7 @@ A small system for getting organized. Open it whenever you feel lost.
 
 | File | What it's for | How often |
 |------|---------------|-----------|
+| [tracker.html](tracker.html) | Daily store numbers and the make-or-lose verdict | Every evening a campaign runs |
 | [now.md](now.md) | The one project you're doing and the next step | Every time |
 | [ideas.md](ideas.md) | Holding area for ideas, plus how to pick one | When an idea shows up |
 | [direction.md](direction.md) | What you're working toward and why | About once a month |
