@@ -1,25 +1,33 @@
 # Now
 
-*Only one project goes here. If it's empty, go to [ideas.md](ideas.md) and use "Pick one".*
+**Project:** Grow my COD e-commerce store
 
-**Project:** _
+**Why this one:** It's already launched and making sales, and it's the most direct path to wedding money.
 
-**Why this one:** _
+**Done means (next 4 weeks):** _ <!-- e.g. "go from X to Y orders per week" or "reach Z profit this month" -->
 
-**Done means:** _ <!-- something concrete you can point at, e.g. "the page is live", "the first draft is written" -->
-
-**Next action:** _ <!-- something you can start in under 2 minutes -->
+**Next action:** Write down last month's numbers in the scoreboard below.
 
 ---
 
-## My week, roughly
-*Leave this loose. Book 2–3 blocks for the project, for example:*
+## Scoreboard
+*Update this whenever you open the file. This is your answer when doubt asks "is it worth it?"*
 
-| When | What |
-|------|------|
-| _e.g. Tue evening_ | Project, 2h |
-| _e.g. Sat morning_ | Project, 3h |
-| _e.g. Sun, 10 min_ | Glance at this file |
+| Week | Orders | Delivered | Returned / refused | Ad spend | Profit |
+|------|-------:|----------:|-------------------:|---------:|-------:|
+| _ | | | | | |
+| _ | | | | | |
+
+> On COD, **delivered** orders are the ones that make money. Watch the refusal rate closely.
+
+## Burst list
+*When energy hits, grab one of these. Keep the list topped up.*
+- [ ] Fill in the scoreboard for the last few weeks
+- [ ] Find the best-selling product and work out why it sells
+- [ ] Call or message customers who refused delivery and ask why
+- [ ] Test one new ad creative for the best product
+- [ ] Improve the product page (photos, price, trust details)
+- [ ] 
 
 ## Log *(optional, one line each time)*
 - _date_: what I did
