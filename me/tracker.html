@@ -217,6 +217,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
     flexy: { n: "فليكسي", living: true }, living_other: { n: "معيشة أخرى", living: true },
     shipping: { n: "Yassir / نقل الطرود", living: false }, packaging: { n: "تغليف", living: false }, store_other: { n: "مصاريف متجر أخرى", living: false }
   };
+  const LOCS = { home: "البيت", warehouse: "مخزن شركة التوصيل" };
   const DEF = { weekly: 7500, usdRate: 0, returnFee: 50, open: { cash: 0, ccp: 0, delivery: 0, bybit: 0 } };
   const S = { entries: [], products: [], campaigns: [], settings: JSON.parse(JSON.stringify(DEF)) };
 
@@ -321,6 +322,13 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
   }
   function productStats(p) {
     const s = stats((e) => e.product === p.id, p);
+    s.loc = { home: 0, warehouse: 0 };
+    S.entries.forEach((e) => {
+      if (e.product !== p.id) return;
+      if (e.t === "stock") s.loc[LOCS[e.loc] ? e.loc : "home"] += num(e.qty);
+      if (e.t === "stock_move" && LOCS[e.from] && LOCS[e.to]) { s.loc[e.from] -= num(e.qty); s.loc[e.to] += num(e.qty); }
+      if (e.t === "results") s.loc[LOCS[e.loc] ? e.loc : "warehouse"] -= num(e.delivered);
+    });
     s.stock = s.bought - s.delivered;
     s.stockValue = Math.max(0, s.stock) * s.avgCost;
     s.camps = S.campaigns.filter((c) => c.product === p.id).length;
@@ -349,9 +357,10 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
         const b = num(e.amountTo) > 0 ? (tc === "USD" ? usd(num(e.amountTo)) : fmt(num(e.amountTo))) : "";
         return { t: (e.to === "bybit" && fc === "DZD" ? "شراء دولار" : "تحويل"), m: aname(e.from) + " ← " + aname(e.to) + (b && b !== a ? " · وصل " + b : ""), a: a };
       }
-      case "stock": return { t: "شراء ستوك · " + pname(e.product), m: num(e.qty) + " قطعة × " + fmt(num(e.unitCost)) + " · من " + aname(e.acct), a: "−" + fmt(num(e.qty) * num(e.unitCost)) };
+      case "stock": return { t: "شراء ستوك · " + pname(e.product), m: num(e.qty) + " قطعة × " + fmt(num(e.unitCost)) + " · في " + (LOCS[e.loc] || LOCS.home) + " · من " + aname(e.acct), a: "−" + fmt(num(e.qty) * num(e.unitCost)) };
+      case "stock_move": return { t: "نقل ستوك · " + pname(e.product), m: num(e.qty) + " قطعة · " + (LOCS[e.from] || "") + " ← " + (LOCS[e.to] || ""), a: "" };
       case "ad": { const c = campById(e.campaign); return { t: "إعلانات · " + pname(e.product), m: (c ? c.name : "بدون حملة") + " · بسعر " + Math.round(num(e.rate) || rate()) + " دج", a: "−" + usd(num(e.usd)) }; }
-      case "results": return { t: "نتائج · " + pname(e.product), m: "طلبيات " + num(e.orders) + " · مُسلَّمة " + num(e.delivered) + " · مرتجعة " + num(e.returned), a: "+" + fmt(num(e.delivered) * num(e.unit) - num(e.returned) * num(e.fee)) };
+      case "results": return { t: "نتائج · " + pname(e.product), m: "طلبيات " + num(e.orders) + " · مُسلَّمة " + num(e.delivered) + " · مرتجعة " + num(e.returned) + " · من " + (LOCS[e.loc] || LOCS.warehouse), a: "+" + fmt(num(e.delivered) * num(e.unit) - num(e.returned) * num(e.fee)) };
       case "debt": {
         const who = e.person || "؟";
         const t = e.dir === "they" ? (e.kind === "new" ? "سلّفت " + who : who + " ردّ لي") : (e.kind === "new" ? "تسلّفت من " + who : "رددت لـ " + who);
@@ -381,13 +390,15 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
   const campOpts = () => S.campaigns.filter((c) => c.status !== "stopped").map((c) => [c.id, c.name + " · " + pname(c.product)]);
   const catOpts = (living) => Object.keys(CATS).filter((k) => living === undefined || CATS[k].living === living).map((k) => [k, CATS[k].n]);
 
+  const locOpts = (first) => { const k = Object.keys(LOCS); if (first === "warehouse") k.reverse(); return k.map((x) => [x, LOCS[x]]); };
   const FORMS = {
     expense: { title: "مصروف", fields: [["amount", "المبلغ (دج)", "number"], ["cat", "الفئة", "select", () => catOpts()], ["acct", "من أين", "select", () => dzdAcctOpts()], ["product", "منتج (اختياري)", "select", () => [["", "—"]].concat(prodOpts())], ["note", "ملاحظة", "text"], ["date", "التاريخ", "date"]] },
     income: { title: "دخل", fields: [["amount", "المبلغ (دج)", "number"], ["acct", "إلى أين", "select", () => dzdAcctOpts()], ["note", "من أين جاء (راتب، بيع...)", "text"], ["date", "التاريخ", "date"]] },
     transfer: { title: "تحويل / شراء دولار", hint: "لشراء دولار: من CCP أو الكاش إلى Bybit، واكتب الدينار الذي دفعته والدولار الذي وصل. ولتحويل شركة التوصيل: من شركة التوصيل إلى CCP.", fields: [["from", "من", "select", () => acctOpts()], ["to", "إلى", "select", () => acctOpts()], ["amount", "المبلغ الذي خرج", "number"], ["amountTo", "المبلغ الذي وصل (إن اختلفت العملة)", "number"], ["date", "التاريخ", "date"]] },
-    stock: { title: "شراء ستوك", needs: "product", fields: [["product", "المنتج", "select", prodOpts], ["qty", "الكمية", "number"], ["unitCost", "سعر القطعة (دج)", "number"], ["acct", "من أين دفعت", "select", () => dzdAcctOpts()], ["date", "التاريخ", "date"]] },
+    stock: { title: "شراء ستوك", needs: "product", fields: [["product", "المنتج", "select", prodOpts], ["qty", "الكمية", "number"], ["unitCost", "سعر القطعة (دج)", "number"], ["loc", "أين وضعتها", "select", () => locOpts("home")], ["acct", "من أين دفعت", "select", () => dzdAcctOpts()], ["date", "التاريخ", "date"]] },
+    stock_move: { title: "نقل ستوك", needs: "product", hint: "مثلاً: أخذت 10 قطع من البيت إلى مخزن شركة التوصيل.", fields: [["product", "المنتج", "select", prodOpts], ["qty", "الكمية", "number"], ["from", "من", "select", () => locOpts("home")], ["to", "إلى", "select", () => locOpts("warehouse")], ["date", "التاريخ", "date"]] },
     ad: { title: "صرف إعلانات", needs: "campaign", fields: [["campaign", "الحملة", "select", campOpts], ["usd", "المبلغ ($)", "number"], ["date", "التاريخ", "date"]] },
-    results: { title: "نتائج الطلبيات", needs: "campaign", hint: "اكتب ما تعرفه اليوم. المُسلَّمة والمرتجعة يمكن إضافتها لاحقاً في عملية جديدة.", fields: [["campaign", "الحملة", "select", campOpts], ["orders", "طلبيات جديدة", "number"], ["delivered", "مُسلَّمة", "number"], ["returned", "مرتجعة", "number"], ["date", "التاريخ", "date"]] },
+    results: { title: "نتائج الطلبيات", needs: "campaign", hint: "اكتب ما تعرفه اليوم. المُسلَّمة والمرتجعة يمكن إضافتها لاحقاً في عملية جديدة.", fields: [["campaign", "الحملة", "select", campOpts], ["loc", "السلعة خرجت من", "select", () => locOpts("warehouse")], ["orders", "طلبيات جديدة", "number"], ["delivered", "مُسلَّمة", "number"], ["returned", "مرتجعة", "number"], ["date", "التاريخ", "date"]] },
     debt: { title: "دين", fields: [["person", "الشخص", "text"], ["dir", "النوع", "select", () => [["they", "هو مدين لي"], ["me", "أنا مدين له"]]], ["kind", "ماذا حدث", "select", () => [["new", "دين جديد"], ["pay", "تسديد"]]], ["amount", "المبلغ (دج)", "number"], ["acct", "المال خرج/دخل من", "select", () => dzdAcctOpts().concat([["none", "بدون حركة مال"]])], ["date", "التاريخ", "date"]] },
     campaign_new: { title: "حملة جديدة", needs: "product", fields: [["product", "المنتج", "select", prodOpts], ["name", "اسم الحملة", "text"], ["budgetUsd", "ميزانية التجربة ($)", "number"], ["date", "تاريخ البداية", "date"]] },
     product_new: { title: "منتج جديد", fields: [["name", "اسم المنتج", "text"], ["price", "ما تستلمه لكل طلبية مُسلَّمة (دج)", "number"], ["cost", "تكلفة القطعة (دج)", "number"]] }
@@ -444,7 +455,8 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
       case "expense": if (!pos("amount") || !CATS[e.cat]) return null; if (!ACCTS[e.acct]) e.acct = "cash"; if (e.product && !prodById(e.product)) delete e.product; if (!e.product) delete e.product; break;
       case "income": if (!pos("amount")) return null; if (!ACCTS[e.acct]) e.acct = "cash"; break;
       case "transfer": if (!pos("amount") || !ACCTS[e.from] || !ACCTS[e.to] || e.from === e.to) return null; if (!pos("amountTo")) delete e.amountTo; break;
-      case "stock": if (!prodById(e.product) || !pos("qty")) return null; if (!ACCTS[e.acct]) e.acct = "cash"; e.unitCost = num(e.unitCost) || num(prodById(e.product).cost); break;
+      case "stock": if (!prodById(e.product) || !pos("qty")) return null; if (!ACCTS[e.acct]) e.acct = "cash"; e.unitCost = num(e.unitCost) || num(prodById(e.product).cost); if (!LOCS[e.loc]) e.loc = "home"; break;
+      case "stock_move": if (!prodById(e.product) || !pos("qty") || !LOCS[e.from] || !LOCS[e.to] || e.from === e.to) return null; break;
       case "ad": {
         const c = campById(e.campaign); if (c) e.product = c.product; else delete e.campaign;
         if (!prodById(e.product) || !pos("usd")) return null; e.rate = rate(); break;
@@ -454,7 +466,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
         const p = prodById(e.product); if (!p) return null;
         ["orders", "delivered", "returned"].forEach((k) => (e[k] = Math.max(0, Math.round(num(e[k])))));
         if (!e.orders && !e.delivered && !e.returned) return null;
-        e.unit = num(p.price); e.fee = num(S.settings.returnFee); break;
+        e.unit = num(p.price); e.fee = num(S.settings.returnFee); if (!LOCS[e.loc]) e.loc = "warehouse"; break;
       }
       case "debt": if (!pos("amount") || !String(e.person || "").trim()) return null; if (e.dir !== "me") e.dir = "they"; if (e.kind !== "pay") e.kind = "new"; if (!ACCTS[e.acct]) e.acct = "none"; break;
       case "campaign_new": if (!prodById(e.product)) return null; if (!String(e.name || "").trim()) e.name = pname(e.product) + " " + e.date; break;
@@ -503,9 +515,10 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
       '- expense {amount, cat, acct, note?, product?}',
       '- income {amount, acct, note?}',
       '- transfer {from, to, amount, amountTo?}  شراء دولار: from=ccp أو cash، to=bybit، amount بالدينار، amountTo بالدولار. استلام مال من شركة التوصيل: from=delivery.',
-      '- stock {product, qty, unitCost, acct}  شراء سلعة',
+      '- stock {product, qty, unitCost, acct, loc}  شراء سلعة. loc: home=البيت، warehouse=مخزن شركة التوصيل (الافتراضي home)',
+      '- stock_move {product, qty, from, to}  نقل سلعة بين home و warehouse',
       '- ad {campaign?, product, usd}  صرف إعلانات بالدولار',
-      '- results {campaign?, product, orders, delivered, returned}  طلبيات جديدة، مُسلَّمة، مرتجعة',
+      '- results {campaign?, product, orders, delivered, returned, loc}  طلبيات جديدة، مُسلَّمة، مرتجعة. loc = من أين خرجت السلعة (الافتراضي warehouse)',
       '- debt {person, dir, kind, amount, acct}  dir="they" هو مدين لي، dir="me" أنا مدين له. kind="new" دين جديد، kind="pay" تسديد. acct="none" إن لم يتحرك مال.',
       '- campaign_new {product, name, budgetUsd?}',
       '- product_new {name, price, cost}  price = ما يستلمه لكل طلبية مُسلَّمة',
@@ -649,7 +662,8 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
       const h = el("div", "row between"); h.append(el("h3", "", p.name), el("span", "pill " + v.c, v.t)); c.append(h);
       const dl = el("dl", "kv");
       const rows = [
-        ["الستوك", Math.round(s.stock) + " قطعة"], ["قيمة الستوك", fmt(s.stockValue)],
+        ["في البيت", Math.round(s.loc.home) + " قطعة"], ["في مخزن شركة التوصيل", Math.round(s.loc.warehouse) + " قطعة"],
+        ["كل الستوك", Math.round(s.stock) + " قطعة"], ["قيمة الستوك", fmt(s.stockValue)],
         ["تستلم لكل طلبية", fmt(num(p.price))], ["تكلفة القطعة", fmt(s.avgCost)],
         ["أقصى إعلان لكل مُسلَّمة", fmt(Math.max(0, s.maxAd))],
         ["الإعلانات", usd(s.adUsd) + " ≈ " + fmt(s.adDzd)],
@@ -661,8 +675,9 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
       rows.forEach(([k, val, tot]) => { const dt = el("dt", tot ? "tot" : "", k); const dd = el("dd", tot ? "tot" : "", val); dl.append(dt, dd); });
       c.append(dl);
       if (s.stock <= 3 && s.bought > 0) c.append(el("p", "pill warn", "الستوك قليل: " + Math.round(s.stock) + " قطعة"));
+      else if (s.loc.warehouse <= 2 && s.loc.home > 0) c.append(el("p", "pill warn", "المخزن شبه فارغ وعندك " + Math.round(s.loc.home) + " في البيت. انقل سلعة للمخزن."));
       const r = el("div", "row");
-      [["شراء ستوك", "stock"], ["حملة", "campaign_new"]].forEach(([t, f]) => { const b = el("button", "plain", t); b.type = "button"; b.onclick = () => openSheet(f, { product: p.id }); r.append(b); });
+      [["شراء ستوك", "stock"], ["نقل ستوك", "stock_move"], ["حملة", "campaign_new"]].forEach(([t, f]) => { const b = el("button", "plain", t); b.type = "button"; b.onclick = () => openSheet(f, { product: p.id }); r.append(b); });
       const ed = el("button", "ghost", "تعديل"); ed.type = "button"; ed.onclick = () => openSheet("product_new", { id: p.id, name: p.name, price: p.price, cost: p.cost }); r.append(ed);
       c.append(r);
       cat.append(c);
