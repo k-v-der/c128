@@ -16,6 +16,9 @@
 2. **COD store.** This is the growth part and my **one project** (see [now.md](now.md)).
 3. **Every other idea waits** in [ideas.md](ideas.md) until the store is working or clearly isn't.
 
+## First: stop the bleeding
+Right now ads are eating my food money. Until the campaign log shows campaigns that earn money, the goal is **break-even and protecting essentials**, not growth. Wedding savings start from job income, *saved before ads*.
+
 ## When doubt shows up ("is this worth it?")
 Don't decide by feeling. Look at the scoreboard in [now.md](now.md):
 - **Profit going up, even slowly?** Keep going.
