@@ -99,6 +99,18 @@ label.f { display: grid; gap: 4px; font-size: 0.8rem; color: var(--muted); font-
 .kv dd { margin: 0; font-family: var(--font-num); direction: ltr; unicode-bidi: isolate; text-align: left; }
 .kv .tot { font-weight: 600; color: var(--fg); border-top: 1px solid var(--line); padding-top: 5px; }
 .empty { color: var(--muted); font-size: 0.88rem; }
+.flow { display: grid; gap: 6px; }
+.frow { display: grid; grid-template-columns: 1fr auto 1fr; gap: 6px; align-items: center; }
+.fbox { border: 1px solid var(--line); border-radius: 10px; padding: 8px 6px; text-align: center; background: var(--bg); display: grid; gap: 0; }
+.fbox span { font-size: 0.75rem; color: var(--muted); font-weight: 600; }
+.fbox b { font-family: var(--font-num); font-size: 1.25rem; font-weight: 500; }
+.fbox.sold { background: var(--good-bg); border-color: transparent; } .fbox.sold b, .fbox.sold span { color: var(--good); }
+.fbox.ret { background: var(--warn-bg); border-color: transparent; } .fbox.ret b, .fbox.ret span { color: var(--warn); }
+.farrow { display: flex; justify-content: center; }
+.farrow button, .frow > button { font-size: 0.75rem; padding: 5px 9px; background: transparent; color: var(--accent); border: 1px dashed var(--accent); }
+.pgroup { display: grid; gap: 6px; }
+.pgroup h3 { font-size: 0.8rem; color: var(--muted); }
+.pgroup .quick button { font-size: 0.78rem; }
 .share { display: flex; height: 12px; border-radius: 99px; overflow: hidden; background: var(--line); gap: 2px; }
 .share i { display: block; height: 100%; }
 .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.78rem; color: var(--muted); }
@@ -112,7 +124,7 @@ details > summary { cursor: pointer; color: var(--accent); font-weight: 600; fon
 details > summary::-webkit-details-marker { display: none; }
 nav.tabs {
   position: fixed; inset: auto 0 0 0; z-index: 20; background: var(--surface); border-top: 1px solid var(--line);
-  display: grid; grid-template-columns: repeat(4, 1fr);
+  display: grid; grid-template-columns: repeat(5, 1fr);
   padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
 }
 nav.tabs a { text-align: center; text-decoration: none; color: var(--muted); font-size: 0.8rem; font-weight: 600; padding: 8px 2px; border-radius: 8px; }
@@ -139,6 +151,8 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
     <div class="card" id="weekCard"></div>
     <a class="card" id="wealthMini" href="#money" style="text-decoration:none;color:inherit"></a>
 
+    <div class="card ask" id="checkin"></div>
+
     <div class="card" id="smartCard">
       <h2>ماذا حدث؟</h2>
       <p class="sub">اكتب كما تتكلم، وأنا أرتّبه وأحسبه. يمكنك كتابة عدة أشياء في رسالة واحدة.</p>
@@ -149,11 +163,9 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
     </div>
 
     <div class="card">
-      <h2>تسجيل سريع</h2>
-      <div class="quick" id="quick"></div>
+      <h2>أو اختر ما حدث</h2>
+      <div class="stack" id="quick"></div>
     </div>
-
-    <div class="card ask" id="checkin"></div>
 
     <div class="card">
       <div class="row between"><h2>اليوم</h2><span class="n sub" id="todayDate"></span></div>
@@ -172,6 +184,63 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
   <section id="v-camps" class="stack" aria-label="الحملات" hidden>
     <div class="row between"><h2>الحملات</h2><button type="button" class="ghost" id="addCampaign">+ حملة جديدة</button></div>
     <div class="stack" id="campList"></div>
+  </section>
+
+  <!-- GUIDE -->
+  <section id="v-guide" class="stack" aria-label="الدليل" hidden>
+    <div class="card">
+      <h2>الفكرة كلها في 3 كلمات</h2>
+      <dl class="kv" style="grid-template-columns:auto 1fr">
+        <dt><strong>الأرصدة</strong></dt><dd style="font-family:inherit;direction:rtl;text-align:right">ما عندك الآن: المال في كل مصدر، والسلعة في كل مكان.</dd>
+        <dt><strong>الحركات</strong></dt><dd style="font-family:inherit;direction:rtl;text-align:right">ما يحدث ويغيّر الأرصدة. أنت تسجّل الحركات فقط، والدفتر يحسب الأرصدة.</dd>
+        <dt><strong>الحملات</strong></dt><dd style="font-family:inherit;direction:rtl;text-align:right">تجمع إعلانات منتج ونتائجه، لتعرف هل تربح أم تخسر.</dd>
+      </dl>
+    </div>
+    <div class="card">
+      <h2>طريق السلعة</h2>
+      <pre class="mermaid" dir="ltr">flowchart TD
+  B[شراء] --> H[البيت]
+  B --> W[مخزن شركة التوصيل]
+  H <-->|نقل| W
+  H -->|أرسلت طرود| T[في التوصيل]
+  W -->|أرسلت طرود| T
+  T -->|تسلّم الزبون| S[مُباعة: المال عند شركة التوصيل]
+  T -->|رفض| R[مرتجعة: -50 دج لكل طرد]
+  R -->|وصلني المرتجع| H
+  R -->|وصلني المرتجع| W</pre>
+      <p class="sub">المرتجع يبقى في خانة "مرتجعة" حتى يرجع لك فعلاً، ثم تسجّل "وصلني المرتجع" وتختار أين وضعته. وإن لم تسجّل "أرسلت طرود"، يأخذ الدفتر السلعة مباشرة من المكان الذي خرجت منه.</p>
+    </div>
+    <div class="card">
+      <h2>طريق المال</h2>
+      <pre class="mermaid" dir="ltr">flowchart TD
+  I[دخل / راتب] --> C[الكاش أو CCP]
+  C -->|شراء دولار| Y[Bybit USDT]
+  Y -->|صرف إعلانات| A[الحملات]
+  C -->|شراء سلعة| ST[السلعة]
+  C -->|مصروف| E[أكل، نقل، فليكسي...]
+  D[شركة التوصيل] -->|استلمت من شركة التوصيل| C</pre>
+    </div>
+    <div class="card">
+      <h2>كل يوم (دقيقتان)</h2>
+      <ol class="stack" style="margin:0;padding-inline-start:1.3em;gap:6px">
+        <li>افتح <strong>اليوم</strong> وأجب عن الأسئلة. كل "نعم" تفتح لك الخانة المناسبة.</li>
+        <li>كل ما صرفته: اكتبه في <strong>ماذا حدث؟</strong>، مثلاً "فليكسي 200، أكل 450".</li>
+        <li>إن صرفت إعلانات: "صرفت 10$ على حملة المكواة".</li>
+        <li>إن وصلك خبر من شركة التوصيل: "تسلمو 3، رجع 1".</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h2>كل أسبوع (السبت، 5 دقائق)</h2>
+      <ol class="stack" style="margin:0;padding-inline-start:1.3em;gap:6px">
+        <li>انظر إلى <strong>ثروتك</strong>: هل زادت أم نقصت هذا الأسبوع؟</li>
+        <li>في <strong>الحملات</strong>: كل حملة عليها "أوقفه"؟ أوقفها.</li>
+        <li>في <strong>المال</strong>: هل يطابق الكاش وCCP ما في جيبك وحسابك؟ إن لم يطابق، صحّح رصيد البداية أو أضف المصروف الناقص.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h2>إذا ضعت</h2>
+      <p>اسأل نفسك سؤالاً واحداً: <strong>ماذا تحرّك؟</strong> مال؟ سلعة؟ إعلان؟ ثم اختر الزر من "أو اختر ما حدث" في صفحة اليوم. وإن لم تعرف، اكتب ما حدث بكلامك في "ماذا حدث؟"، أو اسألني في المحادثة.</p>
+    </div>
   </section>
 
   <!-- MONEY -->
@@ -201,6 +270,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
   <a href="#store" data-v="store">المتجر</a>
   <a href="#campaigns" data-v="camps">الحملات</a>
   <a href="#money" data-v="money">المال</a>
+  <a href="#guide" data-v="guide">الدليل</a>
 </nav>
 
 <div id="sheetRoot"></div>
@@ -328,6 +398,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
     es.forEach((e) => {
       if (e.t === "ad") { s.adUsd += num(e.usd); s.adDzd += num(e.usd) * (num(e.rate) || r); }
       if (e.t === "results") { s.orders += num(e.orders); s.delivered += num(e.delivered); s.returned += num(e.returned); s.pieces += pieces(e); s.revenue += recv(e); s.returnCost += num(e.returned) * num(e.fee); }
+      if (e.t === "ship") s.orders += num(e.orders);
       if (e.t === "expense") s.extra += num(e.amount);
       if (e.t === "stock") s.bought += num(e.qty);
     });
@@ -336,20 +407,31 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
     s.profit = s.revenue - s.cogs - s.adDzd - s.returnCost - s.extra;
     s.cpd = s.delivered > 0 ? s.adDzd / s.delivered : null;
     s.maxAd = p ? expectedNet(p, 1, 1, 0, "warehouse").net - ac : 0;
-    s.rateD = s.orders > 0 ? s.delivered / s.orders : null;
+    s.rateD = s.delivered + s.returned > 0 ? s.delivered / (s.delivered + s.returned) : null;
     s.avgCost = ac;
     return s;
   }
   function productStats(p) {
     const s = stats((e) => e.product === p.id, p);
-    s.loc = { home: 0, warehouse: 0 };
-    S.entries.forEach((e) => {
-      if (e.product !== p.id) return;
-      if (e.t === "stock") s.loc[LOCS[e.loc] ? e.loc : "home"] += num(e.qty);
-      if (e.t === "stock_move" && LOCS[e.from] && LOCS[e.to]) { s.loc[e.from] -= num(e.qty); s.loc[e.to] += num(e.qty); }
-      if (e.t === "results") s.loc[LOCS[e.loc] ? e.loc : "warehouse"] -= pieces(e);
+    // Walk this product's movements in time order. States: home, warehouse, transit (out for delivery), retour (refused, not back yet), sold, damaged.
+    s.st = { home: 0, warehouse: 0, transit: 0, retour: 0, sold: 0, damaged: 0 };
+    const es = S.entries.filter((e) => e.product === p.id).sort((a, b) => ((a.date || "") + (a.ts || "")).localeCompare((b.date || "") + (b.ts || "")));
+    const take = (n, loc) => { const t = Math.min(n, Math.max(0, s.st.transit)); s.st.transit -= t; s.st[loc] -= n - t; };
+    es.forEach((e) => {
+      switch (e.t) {
+        case "stock": s.st[LOCS[e.loc] ? e.loc : "home"] += num(e.qty); break;
+        case "stock_move": if (LOCS[e.from] && LOCS[e.to]) { s.st[e.from] -= num(e.qty); s.st[e.to] += num(e.qty); } break;
+        case "ship": s.st[LOCS[e.from] ? e.from : "warehouse"] -= num(e.qty); s.st.transit += num(e.qty); break;
+        case "results": {
+          const loc = LOCS[e.loc] ? e.loc : "warehouse"; const dp = pieces(e); const rp = num(e.returned);
+          if (e.v === 2) { take(dp, loc); take(rp, loc); s.st.retour += rp; } else s.st[loc] -= dp;
+          s.st.sold += dp; break;
+        }
+        case "retour_in": s.st.retour -= num(e.qty); if (e.to === "damaged") s.st.damaged += num(e.qty); else s.st[LOCS[e.to] ? e.to : "home"] += num(e.qty); break;
+      }
     });
-    s.stock = s.bought - s.pieces;
+    s.loc = { home: s.st.home, warehouse: s.st.warehouse };
+    s.stock = s.st.home + s.st.warehouse + s.st.transit + s.st.retour;
     s.stockValue = Math.max(0, s.stock) * s.avgCost;
     s.camps = S.campaigns.filter((c) => c.product === p.id).length;
     return s;
@@ -378,9 +460,11 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
         return { t: (e.to === "bybit" && fc === "DZD" ? "شراء دولار" : "تحويل"), m: aname(e.from) + " ← " + aname(e.to) + (b && b !== a ? " · وصل " + b : ""), a: a };
       }
       case "stock": return { t: "شراء ستوك · " + pname(e.product), m: num(e.qty) + " قطعة × " + fmt(num(e.unitCost)) + " · في " + (LOCS[e.loc] || LOCS.home) + " · من " + aname(e.acct), a: "−" + fmt(num(e.qty) * num(e.unitCost)) };
+      case "ship": return { t: "أرسلت طرود · " + pname(e.product), m: num(e.qty) + " قطعة في " + num(e.colis) + " طرد · من " + (LOCS[e.from] || ""), a: "" };
+      case "retour_in": return { t: "وصلني المرتجع · " + pname(e.product), m: num(e.qty) + " قطعة · " + (e.to === "damaged" ? "تالفة" : "إلى " + (LOCS[e.to] || "")), a: "" };
       case "stock_move": return { t: "نقل ستوك · " + pname(e.product), m: num(e.qty) + " قطعة · " + (LOCS[e.from] || "") + " ← " + (LOCS[e.to] || ""), a: "" };
       case "ad": { const c = campById(e.campaign); return { t: "إعلانات · " + pname(e.product), m: (c ? c.name : "بدون حملة") + " · بسعر " + Math.round(num(e.rate) || rate()) + " دج", a: "−" + usd(num(e.usd)) }; }
-      case "results": return { t: "نتائج · " + pname(e.product), m: "طلبيات " + num(e.orders) + " · مُسلَّمة " + num(e.delivered) + (pieces(e) !== num(e.delivered) ? " (" + pieces(e) + " قطعة)" : "") + " · مرتجعة " + num(e.returned) + (num(e.discount) ? " · تخفيض " + fmt(num(e.discount)) : "") + (num(e.wf) ? " · وزن " + fmt(num(e.wf)) : "") + (num(e.wh) ? " · مخزن " + fmt(num(e.wh)) : "") + (e.actual ? " · مبلغ حقيقي" : ""), a: "+" + fmt(recv(e) - num(e.returned) * num(e.fee)) };
+      case "results": return { t: "نتائج · " + pname(e.product), m: (num(e.orders) ? "طلبيات " + num(e.orders) + " · " : "") + "مُسلَّمة " + num(e.delivered) + (pieces(e) !== num(e.delivered) ? " (" + pieces(e) + " قطعة)" : "") + " · مرتجعة " + num(e.returned) + (num(e.discount) ? " · تخفيض " + fmt(num(e.discount)) : "") + (num(e.wf) ? " · وزن " + fmt(num(e.wf)) : "") + (num(e.wh) ? " · مخزن " + fmt(num(e.wh)) : "") + (e.actual ? " · مبلغ حقيقي" : ""), a: "+" + fmt(recv(e) - num(e.returned) * num(e.fee)) };
       case "debt": {
         const who = e.person || "؟";
         const t = e.dir === "they" ? (e.kind === "new" ? "سلّفت " + who : who + " ردّ لي") : (e.kind === "new" ? "تسلّفت من " + who : "رددت لـ " + who);
@@ -412,6 +496,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
   const catOpts = (living) => Object.keys(CATS).filter((k) => living === undefined || CATS[k].living === living).map((k) => [k, CATS[k].n]);
 
   const locOpts = (first) => { const k = Object.keys(LOCS); if (first === "warehouse") k.reverse(); return k.map((x) => [x, LOCS[x]]); };
+  const campOptsOpt = () => [["", "— بدون حملة"]].concat(campOpts());
   const FORMS = {
     expense: { title: "مصروف", fields: [["amount", "المبلغ (دج)", "number"], ["cat", "الفئة", "select", () => catOpts()], ["acct", "من أين", "select", () => dzdAcctOpts()], ["product", "منتج (اختياري)", "select", () => [["", "—"]].concat(prodOpts())], ["note", "ملاحظة", "text"], ["date", "التاريخ", "date"]] },
     income: { title: "دخل", fields: [["amount", "المبلغ (دج)", "number"], ["acct", "إلى أين", "select", () => dzdAcctOpts()], ["note", "من أين جاء (راتب، بيع...)", "text"], ["date", "التاريخ", "date"]] },
@@ -419,7 +504,9 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
     stock: { title: "شراء ستوك", needs: "product", fields: [["product", "المنتج", "select", prodOpts], ["qty", "الكمية", "number"], ["unitCost", "سعر القطعة (دج)", "number"], ["loc", "أين وضعتها", "select", () => locOpts("home")], ["acct", "من أين دفعت", "select", () => dzdAcctOpts()], ["date", "التاريخ", "date"]] },
     stock_move: { title: "نقل ستوك", needs: "product", hint: "مثلاً: أخذت 10 قطع من البيت إلى مخزن شركة التوصيل.", fields: [["product", "المنتج", "select", prodOpts], ["qty", "الكمية", "number"], ["from", "من", "select", () => locOpts("home")], ["to", "إلى", "select", () => locOpts("warehouse")], ["date", "التاريخ", "date"]] },
     ad: { title: "صرف إعلانات", needs: "campaign", fields: [["campaign", "الحملة", "select", campOpts], ["usd", "المبلغ ($)", "number"], ["date", "التاريخ", "date"]] },
-    results: { title: "نتائج الطلبيات", needs: "campaign", hint: "اكتب ما تعرفه اليوم. التخفيض: كل ما نقصته للزبون في السعر أو التوصيل. إن كتبت المبلغ الصافي من كشف شركة التوصيل، يُستعمل بدل الحساب.", fields: [["campaign", "الحملة", "select", campOpts], ["loc", "السلعة خرجت من", "select", () => locOpts("warehouse")], ["orders", "طلبيات جديدة", "number"], ["delivered", "طرود مُسلَّمة", "number"], ["pieces", "عدد القطع المُسلَّمة (إن أخذ زبون أكثر من واحدة)", "number"], ["discount", "مجموع التخفيضات (دج)", "number"], ["returned", "مرتجعة", "number"], ["actual", "المبلغ الصافي من كشف شركة التوصيل (اختياري)", "number"], ["date", "التاريخ", "date"]] },
+    ship: { title: "أرسلت طرود", needs: "product", hint: "عندما تؤكد طلبيات وتخرج السلعة للتوصيل. السلعة تنتقل إلى \"في التوصيل\".", fields: [["product", "المنتج", "select", prodOpts], ["campaign", "الحملة", "select", campOptsOpt], ["from", "خرجت من", "select", () => locOpts("warehouse")], ["qty", "عدد القطع", "number"], ["colis", "عدد الطرود", "number"], ["orders", "طلبيات وصلتك من الإعلان (اختياري)", "number"], ["date", "التاريخ", "date"]] },
+    retour_in: { title: "وصلني المرتجع", needs: "product", hint: "عندما ترجع لك السلعة المرفوضة فعلاً.", fields: [["product", "المنتج", "select", prodOpts], ["qty", "عدد القطع", "number"], ["to", "أين وضعتها", "select", () => locOpts("home").concat([["damaged", "تالفة / ضاعت"]])], ["date", "التاريخ", "date"]] },
+    results: { title: "نتيجة التوصيل", needs: "product", hint: "كم طرد تسلّمه الزبون وكم رجع. التخفيض: كل ما نقصته للزبون في السعر أو التوصيل. إن كتبت المبلغ الصافي من كشف شركة التوصيل، يُستعمل بدل الحساب.", fields: [["product", "المنتج", "select", prodOpts], ["campaign", "الحملة", "select", campOptsOpt], ["loc", "الطرود خرجت من", "select", () => locOpts("warehouse")], ["delivered", "طرود تسلّمها الزبون", "number"], ["pieces", "عدد القطع المُسلَّمة (إن أخذ زبون أكثر من واحدة)", "number"], ["discount", "مجموع التخفيضات (دج)", "number"], ["returned", "طرود رجعت (مرتجعة)", "number"], ["actual", "المبلغ الصافي من كشف شركة التوصيل (اختياري)", "number"], ["date", "التاريخ", "date"]] },
     debt: { title: "دين", fields: [["person", "الشخص", "text"], ["dir", "النوع", "select", () => [["they", "هو مدين لي"], ["me", "أنا مدين له"]]], ["kind", "ماذا حدث", "select", () => [["new", "دين جديد"], ["pay", "تسديد"]]], ["amount", "المبلغ (دج)", "number"], ["acct", "المال خرج/دخل من", "select", () => dzdAcctOpts().concat([["none", "بدون حركة مال"]])], ["date", "التاريخ", "date"]] },
     campaign_new: { title: "حملة جديدة", needs: "product", fields: [["product", "المنتج", "select", prodOpts], ["name", "اسم الحملة", "text"], ["budgetUsd", "ميزانية التجربة ($)", "number"], ["date", "تاريخ البداية", "date"]] },
     asset_new: { title: "شيء له قيمة", hint: "أي شيء تملكه وله قيمة ولم يُسجَّل في مكان آخر: ذهب، هاتف، دراجة، سلعة غير المنتجات...", fields: [["name", "ما هو", "text"], ["value", "قيمته التقريبية (دج)", "number"], ["where", "أين هو", "text"], ["date", "منذ متى", "date"]] },
@@ -488,12 +575,18 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
         const p = prodById(e.product); if (!p) return null;
         ["orders", "delivered", "returned"].forEach((k) => (e[k] = Math.max(0, Math.round(num(e[k])))));
         if (!e.orders && !e.delivered && !e.returned) return null;
-        e.fee = num(S.settings.returnFee); if (!LOCS[e.loc]) e.loc = "warehouse";
+        e.v = 2; e.fee = num(S.settings.returnFee); if (!LOCS[e.loc]) e.loc = "warehouse";
         e.pieces = Math.max(e.delivered, Math.round(num(e.pieces)) || e.delivered); e.discount = Math.max(0, num(e.discount));
         if (num(e.actual) > 0) { e.recv = num(e.actual); e.actual = true; e.wf = 0; e.wh = 0; }
         else { const x = expectedNet(p, e.delivered, e.pieces, e.discount, e.loc); e.recv = e.delivered ? x.net : 0; e.wf = e.delivered ? x.wf : 0; e.wh = e.delivered ? x.wh : 0; delete e.actual; }
         e.unit = num(p.price); break;
       }
+      case "ship": {
+        const c = campById(e.campaign); if (c) e.product = c.product; else delete e.campaign;
+        if (!prodById(e.product) || !pos("qty")) return null; if (!LOCS[e.from]) e.from = "warehouse";
+        e.qty = Math.round(num(e.qty)); e.colis = Math.round(num(e.colis)) || e.qty; e.orders = Math.max(0, Math.round(num(e.orders))); break;
+      }
+      case "retour_in": if (!prodById(e.product) || !pos("qty")) return null; if (!LOCS[e.to] && e.to !== "damaged") e.to = "home"; e.qty = Math.round(num(e.qty)); break;
       case "debt": if (!pos("amount") || !String(e.person || "").trim()) return null; if (e.dir !== "me") e.dir = "they"; if (e.kind !== "pay") e.kind = "new"; if (!ACCTS[e.acct]) e.acct = "none"; break;
       case "campaign_new": if (!prodById(e.product)) return null; if (!String(e.name || "").trim()) e.name = pname(e.product) + " " + e.date; break;
       case "product_new": if (!String(e.name || "").trim()) return null; break;
@@ -527,7 +620,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
   function renderSmartAvail() {
     const ok = !!sample;
     $("smartGo").disabled = !ok; $("smartText").disabled = !ok;
-    $("smartMsg").textContent = ok ? "" : "الكتابة الذكية غير متاحة هنا. استعمل التسجيل السريع.";
+    $("smartMsg").textContent = ok ? "" : "الكتابة الذكية غير متاحة هنا. اختر ما حدث من الأزرار.";
   }
   function buildPrompt(text) {
     const prods = S.products.map((p) => ({ id: p.id, name: p.name, price: p.price }));
@@ -545,8 +638,10 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
       '- transfer {from, to, amount, amountTo?}  شراء دولار: from=ccp أو cash، to=bybit، amount بالدينار، amountTo بالدولار. استلام مال من شركة التوصيل: from=delivery.',
       '- stock {product, qty, unitCost, acct, loc}  شراء سلعة. loc: home=البيت، warehouse=مخزن شركة التوصيل (الافتراضي home)',
       '- stock_move {product, qty, from, to}  نقل سلعة بين home و warehouse',
+      '- ship {product, campaign?, from, qty, colis?, orders?}  أرسل طرود للتوصيل (أكّد طلبيات وخرجت السلعة). from: home أو warehouse',
+      '- retour_in {product, qty, to}  وصلته السلعة المرتجعة فعلاً. to: home أو warehouse أو damaged',
       '- ad {campaign?, product, usd}  صرف إعلانات بالدولار',
-      '- results {campaign?, product, orders, delivered, pieces?, discount?, returned, loc, actual?}  orders طلبيات جديدة، delivered طرود مُسلَّمة، pieces عدد القطع إن أخذ زبون أكثر من قطعة، discount مجموع التخفيضات بالدينار، returned مرتجعة، loc من أين خرجت السلعة (الافتراضي warehouse)، actual المبلغ الصافي إن ذكره من كشف شركة التوصيل',
+      '- results {campaign?, product, orders, delivered, pieces?, discount?, returned, loc, actual?}  delivered طرود تسلّمها الزبون، pieces عدد القطع إن أخذ زبون أكثر من قطعة، discount مجموع التخفيضات بالدينار، returned مرتجعة، loc من أين خرجت السلعة (الافتراضي warehouse)، actual المبلغ الصافي إن ذكره من كشف شركة التوصيل',
       '- debt {person, dir, kind, amount, acct}  dir="they" هو مدين لي، dir="me" أنا مدين له. kind="new" دين جديد، kind="pay" تسديد. acct="none" إن لم يتحرك مال.',
       '- campaign_new {product, name, budgetUsd?}',
       '- asset_new {name, value, where}  شيء له قيمة يملكه (ذهب، هاتف...)',
@@ -592,8 +687,8 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
       $("smartMsg").textContent = "";
     } catch (e) {
       const c = e && e.code;
-      $("smartMsg").textContent = c === "not_granted" || c === "sampling_disabled" ? "لم يُسمح باستعمال Claude هنا. استعمل التسجيل السريع."
-        : c === "rate_limited" ? "طلبات كثيرة. انتظر قليلاً ثم حاول." : c === "cancelled" ? "" : "لم أفهم. أعد الصياغة أو استعمل التسجيل السريع.";
+      $("smartMsg").textContent = c === "not_granted" || c === "sampling_disabled" ? "لم يُسمح باستعمال Claude هنا. اختر ما حدث من الأزرار."
+        : c === "rate_limited" ? "طلبات كثيرة. انتظر قليلاً ثم حاول." : c === "cancelled" ? "" : "لم أفهم. أعد الصياغة أو اختر ما حدث من الأزرار.";
       if (c === "not_granted" || c === "sampling_disabled") { sample = null; renderSmartAvail(); }
     } finally { if (sample) $("smartGo").disabled = false; }
   }
@@ -606,7 +701,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
     const l = el("div", "list");
     list.forEach((e, i) => l.append(liRow(e, () => { pendingParsed.splice(i, 1); renderPreview(pendingParsed, question, dropped); })));
     c.append(l);
-    if (dropped) c.append(el("p", "sub", dropped + " عملية لم تكتمل فتركتها. أضفها من التسجيل السريع."));
+    if (dropped) c.append(el("p", "sub", dropped + " عملية لم تكتمل فتركتها. أضفها من الأزرار."));
     const r = el("div", "row");
     const ok = el("button", "", "صحيح، احفظ"); ok.type = "button";
     ok.onclick = () => { commit(pendingParsed); pendingParsed = null; box.replaceChildren(); $("smartText").value = ""; $("smartMsg").textContent = "تم الحفظ."; };
@@ -639,27 +734,30 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
 
   function renderCheckin() {
     const box = $("checkin"); box.replaceChildren();
-    let dismissed = false; try { dismissed = localStorage.getItem("checkin") === today(); } catch (e) {}
+    const td = today();
+    const done = (k) => { try { return localStorage.getItem("q-" + k) === td; } catch (e) { return false; } };
+    const mark = (k) => { try { localStorage.setItem("q-" + k, td); } catch (e) {} renderCheckin(); };
+    const has = (fn) => S.entries.some((e) => e.date === td && fn(e));
+    let retour = 0; S.products.forEach((p) => (retour += Math.max(0, productStats(p).st.retour)));
     const active = S.campaigns.filter((c) => c.status !== "stopped");
-    if (!dismissed) {
-      box.append(el("h2", "", "هل أطلقت حملة جديدة اليوم؟"));
-      const r = el("div", "row");
-      const y = el("button", "", "نعم"); y.type = "button"; y.onclick = () => openSheet("campaign_new");
-      const n = el("button", "plain", "لا"); n.type = "button"; n.onclick = () => { try { localStorage.setItem("checkin", today()); } catch (e) {} renderCheckin(); };
-      r.append(y, n); box.append(r);
-    }
-    if (active.length) {
-      box.append(el("h3", "", "أرقام اليوم للحملات النشطة"));
-      active.forEach((c) => {
-        const r = el("div", "li");
-        const has = S.entries.some((e) => e.campaign === c.id && e.date === today());
-        const d = el("div", "d"); d.append(el("span", "t", c.name), el("span", "m", pname(c.product) + (has ? " · سجّلت اليوم" : " · لم تسجّل اليوم")));
-        const btns = el("div", "row");
-        const a = el("button", "plain", "إعلانات"); a.type = "button"; a.onclick = () => openSheet("ad", { campaign: c.id });
-        const b = el("button", "plain", "نتائج"); b.type = "button"; b.onclick = () => openSheet("results", { campaign: c.id });
-        btns.append(a, b); r.append(d, btns); box.append(r);
-      });
-    } else if (dismissed) box.append(el("p", "empty", "لا توجد حملات نشطة."));
+    const qs = [
+      ["spent", "هل صرفت مالاً اليوم؟", () => has((e) => e.t === "expense"), () => { $("smartText").focus(); }],
+      ["camp", "هل أطلقت حملة جديدة اليوم؟", () => S.campaigns.some((c) => c.start === td), () => openSheet("campaign_new")],
+      ["ads", "هل صرفت على الإعلانات اليوم؟", () => !active.length || has((e) => e.t === "ad"), () => openSheet("ad")],
+      ["ship", "هل أرسلت طرود اليوم؟", () => !S.products.length || has((e) => e.t === "ship"), () => openSheet("ship")],
+      ["res", "هل وصلك خبر تسليم أو مرتجع؟", () => !S.products.length || has((e) => e.t === "results"), () => openSheet("results")],
+      ["ret", "عندك " + Math.round(retour) + " قطعة مرتجعة لم تسجّل رجوعها. هل وصلتك؟", () => retour <= 0, () => openSheet("retour_in")],
+      ["cash", "هل استلمت مالاً من شركة التوصيل؟", () => !S.products.length || has((e) => e.t === "transfer" && e.from === "delivery"), () => openSheet("transfer", { from: "delivery", to: "ccp" })]
+    ].filter(([k, , answered]) => !done(k) && !answered());
+    if (!qs.length) { box.append(el("h2", "", "أسئلة اليوم"), el("p", "empty", "أجبت عن كل شيء اليوم.")); return; }
+    box.append(el("h2", "", "أسئلة اليوم"));
+    qs.forEach(([k, q, , yes]) => {
+      const r = el("div", "li"); r.append(el("span", "t", q));
+      const btns = el("div", "row");
+      const y = el("button", "", "نعم"); y.type = "button"; y.onclick = yes;
+      const n = el("button", "plain", "لا"); n.type = "button"; n.onclick = () => mark(k);
+      btns.append(y, n); r.append(btns); box.append(r);
+    });
   }
 
   function renderToday() {
@@ -672,6 +770,21 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
   }
 
   function tile(label, value, cls) { const t = el("div", "tile"); t.append(el("span", "l", label)); const v = el("span", "v", value); if (cls) v.style.color = "var(--" + cls + ")"; t.append(v); return t; }
+
+  function flowMap(p, s) {
+    const box = (cls, label, n) => { const b = el("div", "fbox " + cls); b.append(el("span", "", label), el("b", "", String(Math.round(n)))); return b; };
+    const act = (label, form, preset) => { const b = el("button", "", label); b.type = "button"; b.onclick = () => openSheet(form, Object.assign({ product: p.id }, preset || {})); return b; };
+    const wrap = el("div", "flow");
+    wrap.append(el("div", "farrow")); wrap.lastChild.append(act("＋ شراء سلعة", "stock"));
+    const r1 = el("div", "frow"); r1.append(box("", "البيت", s.st.home), act("⇄ نقل", "stock_move"), box("", "المخزن", s.st.warehouse)); wrap.append(r1);
+    const a1 = el("div", "farrow"); a1.append(act("↓ أرسلت طرود", "ship")); wrap.append(a1);
+    const r2 = el("div", "frow"); r2.style.gridTemplateColumns = "1fr"; r2.append(box("", "في التوصيل", s.st.transit)); wrap.append(r2);
+    const a2 = el("div", "farrow"); a2.append(act("↓ نتيجة التوصيل", "results")); wrap.append(a2);
+    const r3 = el("div", "frow"); r3.append(box("sold", "مُباعة", s.st.sold), el("span"), box("ret", "مرتجعة (لم ترجع بعد)", s.st.retour)); wrap.append(r3);
+    if (s.st.retour > 0) { const a3 = el("div", "farrow"); a3.append(act("↑ وصلني المرتجع", "retour_in", { qty: Math.round(s.st.retour) })); wrap.append(a3); }
+    if (s.st.damaged > 0) wrap.append(el("p", "sub", "تالفة أو ضائعة: " + Math.round(s.st.damaged)));
+    return wrap;
+  }
 
   function renderStore() {
     const tiles = $("storeTiles"); tiles.replaceChildren();
@@ -689,14 +802,14 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
       const s = productStats(p); const v = verdict(s, s.adUsd > 0 || s.orders > 0 || s.delivered > 0);
       const c = el("div", "card");
       const h = el("div", "row between"); h.append(el("h3", "", p.name), el("span", "pill " + v.c, v.t)); c.append(h);
+      c.append(flowMap(p, s));
       const dl = el("dl", "kv");
       const rows = [
-        ["في البيت", Math.round(s.loc.home) + " قطعة"], ["في مخزن شركة التوصيل", Math.round(s.loc.warehouse) + " قطعة"],
-        ["كل الستوك", Math.round(s.stock) + " قطعة"], ["قيمة الستوك", fmt(s.stockValue)],
+        ["كل الستوك (غير المُباع)", Math.round(s.stock) + " قطعة"], ["قيمة الستوك", fmt(s.stockValue)],
         ["سعر البيع", fmt(num(p.price))], ["تكلفة القطعة", fmt(s.avgCost)], ["الوزن · رسوم المخزن", (num(p.weight) || 0) + " كغ · " + fmt(num(p.whFee))],
         ["أقصى إعلان لكل مُسلَّمة", fmt(Math.max(0, s.maxAd))],
         ["الإعلانات", usd(s.adUsd) + " ≈ " + fmt(s.adDzd)],
-        ["طلبيات ← مُسلَّمة ← مرتجعة", s.orders + " → " + s.delivered + " → " + s.returned + (s.rateD !== null ? " (" + Math.round(s.rateD * 100) + "%)" : "")],
+        ["طرود مُسلَّمة / مرتجعة", s.delivered + " / " + s.returned + (s.rateD !== null ? " (" + Math.round(s.rateD * 100) + "% تسليم)" : "")],
         ["تكلفة الإعلان لكل مُسلَّمة", s.cpd !== null ? fmt(s.cpd) : "–"],
         ["الصافي من شركة التوصيل", fmt(s.revenue)], ["الحملات", String(s.camps)],
         ["الربح أو الخسارة", fmt(s.profit), true]
@@ -706,7 +819,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
       if (s.stock <= 3 && s.bought > 0) c.append(el("p", "pill warn", "الستوك قليل: " + Math.round(s.stock) + " قطعة"));
       else if (s.loc.warehouse <= 2 && s.loc.home > 0) c.append(el("p", "pill warn", "المخزن شبه فارغ وعندك " + Math.round(s.loc.home) + " في البيت. انقل سلعة للمخزن."));
       const r = el("div", "row");
-      [["شراء ستوك", "stock"], ["نقل ستوك", "stock_move"], ["حملة", "campaign_new"]].forEach(([t, f]) => { const b = el("button", "plain", t); b.type = "button"; b.onclick = () => openSheet(f, { product: p.id }); r.append(b); });
+      [["حملة", "campaign_new"]].forEach(([t, f]) => { const b = el("button", "plain", t); b.type = "button"; b.onclick = () => openSheet(f, { product: p.id }); r.append(b); });
       const ed = el("button", "ghost", "تعديل"); ed.type = "button"; ed.onclick = () => openSheet("product_new", { id: p.id, name: p.name, price: p.price, cost: p.cost, weight: p.weight, whFee: p.whFee }); r.append(ed);
       c.append(r);
       cat.append(c);
@@ -737,7 +850,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
       const r = el("div", "row");
       if (cp.status !== "stopped") {
         const a = el("button", "plain", "إعلانات"); a.type = "button"; a.onclick = () => openSheet("ad", { campaign: cp.id });
-        const b = el("button", "plain", "نتائج"); b.type = "button"; b.onclick = () => openSheet("results", { campaign: cp.id });
+        const b = el("button", "plain", "نتائج"); b.type = "button"; b.onclick = () => openSheet("results", { campaign: cp.id, product: cp.product });
         r.append(a, b);
       }
       const st = el("button", "ghost", cp.status === "stopped" ? "أعد تشغيلها" : "أوقف الحملة"); st.type = "button";
@@ -868,7 +981,7 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
   }
 
   // ---------------- routing ----------------
-  const VIEWS = { today: "v-today", store: "v-store", campaigns: "v-camps", money: "v-money" };
+  const VIEWS = { today: "v-today", store: "v-store", campaigns: "v-camps", money: "v-money", guide: "v-guide" };
   function route() {
     const h = (location.hash || "#today").slice(1); const key = VIEWS[h] ? h : "today";
     Object.entries(VIEWS).forEach(([k, id]) => ($(id).hidden = k !== key));
@@ -881,8 +994,14 @@ nav.tabs a[aria-current="page"] { color: var(--accent); background: var(--bg); }
   // ---------------- wire up ----------------
   EXAMPLES.forEach((x) => { const b = el("button", "chip", x); b.type = "button"; b.onclick = () => { const t = $("smartText"); t.value = (t.value ? t.value + "، " : "") + x; t.focus(); }; $("smartEx").append(b); });
   $("smartGo").onclick = smartGo;
-  [["مصروف", "expense"], ["إعلانات", "ad"], ["نتائج", "results"], ["ستوك", "stock"], ["شراء دولار", "transfer"], ["دين", "debt"], ["دخل", "income"], ["حملة", "campaign_new"]]
-    .forEach(([t, f]) => { const b = el("button", "", t); b.type = "button"; b.onclick = () => openSheet(f, f === "transfer" ? { from: "ccp", to: "bybit" } : null); $("quick").append(b); });
+  [["المال", [["صرفت مصروف", "expense"], ["دخلني مال", "income"], ["اشتريت دولار", "transfer", { from: "ccp", to: "bybit" }], ["استلمت من التوصيل", "transfer", { from: "delivery", to: "ccp" }], ["دين", "debt"]]],
+   ["السلعة", [["اشتريت سلعة", "stock"], ["نقلت سلعة", "stock_move"], ["أرسلت طرود", "ship"], ["نتيجة التوصيل", "results"], ["وصلني المرتجع", "retour_in"], ["منتج جديد", "product_new"]]],
+   ["الإعلانات", [["حملة جديدة", "campaign_new"], ["صرفت إعلانات", "ad"]]]]
+    .forEach(([g, items]) => {
+      const w = el("div", "pgroup"); w.append(el("h3", "", g)); const q = el("div", "quick");
+      items.forEach(([t, f, pre]) => { const b = el("button", "", t); b.type = "button"; b.onclick = () => openSheet(f, pre || null); q.append(b); });
+      w.append(q); $("quick").append(w);
+    });
   $("addProduct").onclick = () => openSheet("product_new");
   $("addCampaign").onclick = () => openSheet("campaign_new");
   $("saveSettings").onclick = () => {
